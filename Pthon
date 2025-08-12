@@ -1,15 +1,19 @@
+import streamlit as st
+import numpy as np
+import plotly.graph_objects as go
+import pandas as pd
+import io
+
+# CSS for metallic chrome + dark theme + font (Futura PT)
 st.markdown(
     """
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Futura+PT:wght@400;700&display=swap');
-
-    /* Background gradient with metallic chrome vibes */
     .stApp {
         background: linear-gradient(135deg, #2f2f2f, #4f4f4f, #2f2f2f);
         color: #eee;
         font-family: 'Futura PT', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-    /* Headers with shiny chrome effect */
     h1, h2, h3 {
         color: #c0c0c0;
         text-shadow:
@@ -17,11 +21,9 @@ st.markdown(
             0 0 10px #b0b0b0,
             0 0 15px #a0a0a0;
     }
-    /* Sliders styling */
     .stSlider > div > div > div > input {
         accent-color: #d4d4d4;
     }
-    /* Primary buttons */
     button[kind="primary"] {
         background: linear-gradient(90deg, #a9a9a9, #e0e0e0);
         color: #222;
@@ -29,13 +31,80 @@ st.markdown(
         border-radius: 8px;
         box-shadow: 0 0 5px #888 inset;
     }
-    /* Secondary buttons */
     button[kind="secondary"] {
         background: linear-gradient(90deg, #6f6f6f, #a9a9a9);
         color: white;
         border-radius: 8px;
     }
     </style>
-    """,
-    unsafe_allow_html=True,
+    """, unsafe_allow_html=True
 )
+
+st.markdown("# ⚙️✨ The Complex Equation Simulator ✨⚙️")
+
+# Parameters sliders
+attention = st.slider("Attention (A)", 0.1, 2.0, 1.0, 0.05)
+memory = st.slider("Memory (M)", 0.1, 2.0, 0.7, 0.05)
+sensory = st.slider("Sensory Processing (S)", 1, 20, 10, 1)
+higher_dim = st.slider("Higher-Dimensional Space (Dₙ)", 1.0, 10.0, 4.0, 0.1)
+
+R = 100
+alpha = 1.5
+beta = 2.0
+theta = 1.0
+Q = 1.0
+E = 1.0
+
+def complexity(R, alpha, theta, S, Q, A, E, M, Dn, beta):
+    numerator = R * (alpha ** theta) * S * Q * (1.2 * A) * E * (1.5 * M)
+    denominator = Dn * (beta ** theta)
+    return numerator / denominator
+
+# Calculate current complexity
+C = complexity(R, alpha, theta, sensory, Q, attention, E, memory, higher_dim, beta)
+st.markdown(f"### Calculated Complexity (C): {C:.2f}")
+
+# Generate 3D data for surface plot varying Attention (A) and Memory (M)
+A_vals = np.linspace(0.1, 2.0, 30)
+M_vals = np.linspace(0.1, 2.0, 30)
+A_grid, M_grid = np.meshgrid(A_vals, M_vals)
+
+Z = complexity(R, alpha, theta, sensory, Q, A_grid, E, M_grid, higher_dim, beta)
+
+fig = go.Figure(data=[go.Surface(z=Z, x=A_vals, y=M_vals, colorscale='Viridis', showscale=True)])
+
+fig.update_layout(
+    scene=dict(
+        xaxis_title='Attention (A)',
+        yaxis_title='Memory (M)',
+        zaxis_title='Complexity (C)',
+        bgcolor='rgba(0,0,0,0)'
+    ),
+    paper_bgcolor='rgba(0,0,0,0)',
+    font=dict(color='#eee', family='Futura PT, Segoe UI'),
+)
+
+st.plotly_chart(fig, use_container_width=True)
+
+# Animated transitions example: smoothly move attention from min to max (optional button)
+if st.button("Animate Attention"):
+    for val in np.linspace(0.1, 2.0, 50):
+        C_anim = complexity(R, alpha, theta, sensory, Q, val, E, memory, higher_dim, beta)
+        st.write(f"Attention: {val:.2f} → Complexity: {C_anim:.2f}")
+        st.experimental_rerun()  # Note: this refreshes the whole app — better animation needs JS integration.
+
+# Sound effect toggle & play on slider change
+sound_enabled = st.checkbox("Enable Sound Effects 🔊", value=False)
+
+if sound_enabled:
+    st.markdown(
+        """
+        <audio id="sliderSound" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
+        <script>
+        const slider = window.parent.document.querySelector('input[type=range]');
+        const sound = document.getElementById('sliderSound');
+        slider.oninput = () => { sound.play(); };
+        </script>
+        """, 
+        unsafe_allow_html=True
+    )
