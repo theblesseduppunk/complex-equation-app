@@ -1,16 +1,13 @@
-import streamlit as st
-import pandas as pd
-import io
-
-# Inject custom CSS for metallic chrome style
 st.markdown(
     """
     <style>
+    @import url('https://fonts.googleapis.com/css2?family=Futura+PT:wght@400;700&display=swap');
+
     /* Background gradient with metallic chrome vibes */
     .stApp {
         background: linear-gradient(135deg, #2f2f2f, #4f4f4f, #2f2f2f);
         color: #eee;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-family: 'Futura PT', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     /* Headers with shiny chrome effect */
     h1, h2, h3 {
@@ -41,70 +38,4 @@ st.markdown(
     </style>
     """,
     unsafe_allow_html=True,
-)
-
-st.markdown("# ⚙️✨ The Complex Equation Simulator ✨⚙️")
-
-st.markdown(
-    """
-    Adjust the parameters below to explore how complexity (C) changes.
-    Hover over the (i) icons for explanations.
-    """
-)
-
-with st.expander("🧠 Cognitive Parameters 🧠"):
-    attention = st.slider("Attention (A)", 0.1, 2.0, 1.0, 0.05, help="Focus level or awareness factor.")
-    memory = st.slider("Memory (M)", 0.1, 2.0, 0.7, 0.05, help="Memory capacity or retention strength.")
-    sensory = st.slider("Sensory Processing (S)", 1, 20, 10, 1, help="Intensity of sensory input.")
-
-with st.expander("🌌 Environmental Parameters 🌌"):
-    higher_dim = st.slider("Higher-Dimensional Space (Dₙ)", 1.0, 10.0, 4.0, 0.1, help="Dimensional space complexity.")
-    R = st.slider("Reality Magnitude (R)", 50, 200, 100, 1, help="Overall scale of the system.")
-
-with st.expander("⚙️ Equation Constants ⚙️"):
-    alpha = st.slider("Alpha (α)", 0.5, 3.0, 1.5, 0.05, help="Exponent base for α.")
-    beta = st.slider("Beta (β)", 1.0, 5.0, 2.0, 0.05, help="Exponent base for β.")
-    theta = st.slider("Theta (θ)", 0.5, 3.0, 1.0, 0.05, help="Power to which α and β are raised.")
-    Q = st.slider("Q", 0.1, 2.0, 1.0, 0.05, help="Quality factor.")
-    E = st.slider("E", 0.1, 2.0, 1.0, 0.05, help="Efficiency factor.")
-
-def calculate_complexity(R, alpha, theta, S, Q, A, E, M, Dn, beta):
-    numerator = R * (alpha ** theta) * S * Q * (1.2 * A) * E * (1.5 * M)
-    denominator = Dn * (beta ** theta)
-    C = numerator / denominator
-    return C
-
-# Calculate complexity
-C = calculate_complexity(R, alpha, theta, sensory, Q, attention, E, memory, higher_dim, beta)
-
-st.markdown(f"### Calculated Complexity (C): {C:.2f}")
-
-# Prepare data for visualization
-attention_vals = [0.5, 0.7, 0.9, 1.0, 1.2]
-memory_vals = [0.4, 0.6, 0.7, 0.8, 1.0]
-
-complexity_attention = [
-    calculate_complexity(R, alpha, theta, sensory, Q, a, E, memory, higher_dim, beta) for a in attention_vals
-]
-complexity_memory = [
-    calculate_complexity(R, alpha, theta, sensory, Q, attention, E, m, higher_dim, beta) for m in memory_vals
-]
-
-df = pd.DataFrame({
-    "Varying Attention": complexity_attention,
-    "Varying Memory": complexity_memory
-}, index=attention_vals)
-
-st.line_chart(df)
-
-# CSV download button
-csv_buffer = io.StringIO()
-df.to_csv(csv_buffer)
-csv_data = csv_buffer.getvalue()
-
-st.download_button(
-    label="Download Complexity Data as CSV",
-    data=csv_data,
-    file_name='complexity_data.csv',
-    mime='text/csv'
 )
