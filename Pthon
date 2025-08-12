@@ -1,10 +1,9 @@
 import streamlit as st
 import numpy as np
 import plotly.graph_objects as go
-import pandas as pd
-import io
+import random
 
-# CSS for metallic chrome + dark theme + font (Futura PT)
+# --- CSS & styling (metallic chrome + Futura-like font) ---
 st.markdown(
     """
     <style>
@@ -13,6 +12,7 @@ st.markdown(
         background: linear-gradient(135deg, #2f2f2f, #4f4f4f, #2f2f2f);
         color: #eee;
         font-family: 'Futura PT', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        min-height: 100vh;
     }
     h1, h2, h3 {
         color: #c0c0c0;
@@ -42,31 +42,54 @@ st.markdown(
 
 st.markdown("# ⚙️✨ The Complex Equation Simulator ✨⚙️")
 
-# Parameters sliders
-attention = st.slider("Attention (A)", 0.1, 2.0, 1.0, 0.05)
-memory = st.slider("Memory (M)", 0.1, 2.0, 0.7, 0.05)
-sensory = st.slider("Sensory Processing (S)", 1, 20, 10, 1)
-higher_dim = st.slider("Higher-Dimensional Space (Dₙ)", 1.0, 10.0, 4.0, 0.1)
+# --- Randomized preset generator ---
+def random_preset():
+    return {
+        "attention": round(random.uniform(0.1, 2.0), 2),
+        "memory": round(random.uniform(0.1, 2.0), 2),
+        "sensory": round(random.uniform(1, 20), 1),
+        "higher_dim": round(random.uniform(1.0, 10.0), 2),
+        "R": random.randint(50, 200),
+        "alpha": round(random.uniform(0.5, 3.0), 2),
+        "beta": round(random.uniform(1.0, 5.0), 2),
+        "theta": round(random.uniform(0.5, 3.0), 2),
+        "Q": round(random.uniform(0.1, 2.0), 2),
+        "E": round(random.uniform(0.1, 2.0), 2),
+    }
 
-R = 100
-alpha = 1.5
-beta = 2.0
-theta = 1.0
-Q = 1.0
-E = 1.0
+# Use session state for persistence
+if "params" not in st.session_state:
+    st.session_state.params = random_preset()
+
+if st.button("🔄 Randomize Scenario"):
+    st.session_state.params = random_preset()
+
+p = st.session_state.params
+
+# Sliders with default values from preset
+attention = st.slider("Attention (A)", 0.1, 2.0, p["attention"], 0.05)
+memory = st.slider("Memory (M)", 0.1, 2.0, p["memory"], 0.05)
+sensory = st.slider("Sensory Processing (S)", 1, 20, p["sensory"], 1)
+higher_dim = st.slider("Higher-Dimensional Space (Dₙ)", 1.0, 10.0, p["higher_dim"], 0.1)
+
+R = st.slider("Reality Magnitude (R)", 50, 200, p["R"], 1)
+alpha = st.slider("Alpha (α)", 0.5, 3.0, p["alpha"], 0.05)
+beta = st.slider("Beta (β)", 1.0, 5.0, p["beta"], 0.05)
+theta = st.slider("Theta (θ)", 0.5, 3.0, p["theta"], 0.05)
+Q = st.slider("Q", 0.1, 2.0, p["Q"], 0.05)
+E = st.slider("E", 0.1, 2.0, p["E"], 0.05)
 
 def complexity(R, alpha, theta, S, Q, A, E, M, Dn, beta):
     numerator = R * (alpha ** theta) * S * Q * (1.2 * A) * E * (1.5 * M)
     denominator = Dn * (beta ** theta)
     return numerator / denominator
 
-# Calculate current complexity
 C = complexity(R, alpha, theta, sensory, Q, attention, E, memory, higher_dim, beta)
 st.markdown(f"### Calculated Complexity (C): {C:.2f}")
 
-# Generate 3D data for surface plot varying Attention (A) and Memory (M)
-A_vals = np.linspace(0.1, 2.0, 30)
-M_vals = np.linspace(0.1, 2.0, 30)
+# 3D Surface Plot for Attention (A) vs Memory (M) vs Complexity (C)
+A_vals = np.linspace(0.1, 2.0, 40)
+M_vals = np.linspace(0.1, 2.0, 40)
 A_grid, M_grid = np.meshgrid(A_vals, M_vals)
 
 Z = complexity(R, alpha, theta, sensory, Q, A_grid, E, M_grid, higher_dim, beta)
@@ -82,18 +105,12 @@ fig.update_layout(
     ),
     paper_bgcolor='rgba(0,0,0,0)',
     font=dict(color='#eee', family='Futura PT, Segoe UI'),
+    margin=dict(l=0, r=0, b=0, t=40)
 )
 
 st.plotly_chart(fig, use_container_width=True)
 
-# Animated transitions example: smoothly move attention from min to max (optional button)
-if st.button("Animate Attention"):
-    for val in np.linspace(0.1, 2.0, 50):
-        C_anim = complexity(R, alpha, theta, sensory, Q, val, E, memory, higher_dim, beta)
-        st.write(f"Attention: {val:.2f} → Complexity: {C_anim:.2f}")
-        st.experimental_rerun()  # Note: this refreshes the whole app — better animation needs JS integration.
-
-# Sound effect toggle & play on slider change
+# Sound effect toggle
 sound_enabled = st.checkbox("Enable Sound Effects 🔊", value=False)
 
 if sound_enabled:
@@ -101,10 +118,12 @@ if sound_enabled:
         """
         <audio id="sliderSound" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
         <script>
-        const slider = window.parent.document.querySelector('input[type=range]');
+        const sliders = window.parent.document.querySelectorAll('input[type=range]');
         const sound = document.getElementById('sliderSound');
-        slider.oninput = () => { sound.play(); };
+        sliders.forEach(slider => {
+            slider.oninput = () => { sound.play(); };
+        });
         </script>
-        """, 
+        """,
         unsafe_allow_html=True
     )
