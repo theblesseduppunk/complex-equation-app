@@ -1,0 +1,202 @@
+import streamlit as st
+import numpy as np
+import plotly.graph_objects as go
+import random
+import json
+
+# --- CSS Styling ---
+st.markdown(
+    """
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Futura+PT:wght@400;700&display=swap');
+    .stApp {
+        background: linear-gradient(135deg, #2f2f2f, #4f4f4f, #2f2f2f);
+        color: #eee;
+        font-family: 'Futura PT', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        min-height: 100vh;
+        padding: 1rem 2rem;
+    }
+    h1, h2, h3 {
+        color: #c0c0c0;
+        text-shadow:
+            0 0 5px #fff,
+            0 0 10px #b0b0b0,
+            0 0 15px #a0a0a0;
+        margin-bottom: 0.5rem;
+    }
+    .slider-label {
+        font-weight: 600;
+        margin-top: 0.75rem;
+    }
+    .tooltip {
+        font-size: 0.8rem;
+        color: #aaa;
+        margin-bottom: 0.8rem;
+    }
+    button[kind="primary"] {
+        background: linear-gradient(90deg, #a9a9a9, #e0e0e0);
+        color: #222;
+        font-weight: bold;
+        border-radius: 8px;
+        box-shadow: 0 0 5px #888 inset;
+        margin-right: 1rem;
+    }
+    button[kind="secondary"] {
+        background: linear-gradient(90deg, #6f6f6f, #a9a9a9);
+        color: white;
+        border-radius: 8px;
+        margin-right: 1rem;
+    }
+    </style>
+    """, unsafe_allow_html=True
+)
+
+st.markdown("# ⚙️✨ The Complex Equation Simulator ✨⚙️")
+
+# --- Randomized preset generator ---
+def random_preset():
+    return {
+        "attention": round(random.uniform(0.1, 2.0), 2),
+        "memory": round(random.uniform(0.1, 2.0), 2),
+        "sensory": round(random.uniform(1, 20), 1),
+        "higher_dim": round(random.uniform(1.0, 10.0), 2),
+        "R": random.randint(50, 200),
+        "alpha": round(random.uniform(0.5, 3.0), 2),
+        "beta": round(random.uniform(1.0, 5.0), 2),
+        "theta": round(random.uniform(0.5, 3.0), 2),
+        "Q": round(random.uniform(0.1, 2.0), 2),
+        "E": round(random.uniform(0.1, 2.0), 2),
+    }
+
+# Initialize session state parameters
+if "params" not in st.session_state:
+    st.session_state.params = random_preset()
+
+if "sound_enabled" not in st.session_state:
+    st.session_state.sound_enabled = False
+
+if "volume" not in st.session_state:
+    st.session_state.volume = 0.5
+
+# Buttons: Reset and Save
+col_buttons = st.columns([1,1,6])
+with col_buttons[0]:
+    if st.button("🔄 Reset to Random Preset"):
+        st.session_state.params = random_preset()
+        st.experimental_rerun()
+with col_buttons[1]:
+    if st.button("💾 Save Settings"):
+        json_str = json.dumps(st.session_state.params, indent=2)
+        st.download_button("Download JSON", data=json_str, file_name="complex_eq_settings.json", mime="application/json")
+
+# Access current params for sliders
+p = st.session_state.params
+
+# Sliders with tooltips helper text
+def slider_with_tooltip(label, min_val, max_val, default, step, key, tooltip):
+    st.markdown(f'<div class="slider-label">{label}</div>', unsafe_allow_html=True)
+    val = st.slider(label, min_val, max_val, default, step=step, key=key)
+    st.markdown(f'<div class="tooltip">{tooltip}</div>', unsafe_allow_html=True)
+    return val
+
+attention = slider_with_tooltip(
+    "Attention (A)", 0.1, 2.0, p["attention"], 0.05, "attention",
+    "The focus or intensity of awareness influencing complexity."
+)
+memory = slider_with_tooltip(
+    "Memory (M)", 0.1, 2.0, p["memory"], 0.05, "memory",
+    "Capacity to retain information over time."
+)
+sensory = slider_with_tooltip(
+    "Sensory Processing (S)", 1, 20, p["sensory"], 1, "sensory",
+    "Amount and intensity of sensory input considered."
+)
+higher_dim = slider_with_tooltip(
+    "Higher-Dimensional Space (Dₙ)", 1.0, 10.0, p["higher_dim"], 0.1, "higher_dim",
+    "The dimensional complexity of the system."
+)
+
+R = slider_with_tooltip(
+    "Reality Magnitude (R)", 50, 200, p["R"], 1, "R",
+    "Scale of the observed reality or phenomenon."
+)
+alpha = slider_with_tooltip(
+    "Alpha (α)", 0.5, 3.0, p["alpha"], 0.05, "alpha",
+    "Exponent scaling factor on certain parameters."
+)
+beta = slider_with_tooltip(
+    "Beta (β)", 1.0, 5.0, p["beta"], 0.05, "beta",
+    "Exponent scaling factor related to dimensionality."
+)
+theta = slider_with_tooltip(
+    "Theta (θ)", 0.5, 3.0, p["theta"], 0.05, "theta",
+    "Power applied to alpha and beta."
+)
+Q = slider_with_tooltip(
+    "Q", 0.1, 2.0, p["Q"], 0.05, "Q",
+    "A quality factor influencing complexity."
+)
+E = slider_with_tooltip(
+    "E", 0.1, 2.0, p["E"], 0.05, "E",
+    "An environmental or external influence factor."
+)
+
+def complexity(R, alpha, theta, S, Q, A, E, M, Dn, beta):
+    numerator = R * (alpha ** theta) * S * Q * (1.2 * A) * E * (1.5 * M)
+    denominator = Dn * (beta ** theta)
+    return numerator / denominator
+
+with st.spinner("Calculating complexity..."):
+    C = complexity(R, alpha, theta, sensory, Q, attention, E, memory, higher_dim, beta)
+
+st.markdown(f"### Calculated Complexity (C): {C:.2f}")
+
+# 3D Plot
+A_vals = np.linspace(0.1, 2.0, 40)
+M_vals = np.linspace(0.1, 2.0, 40)
+A_grid, M_grid = np.meshgrid(A_vals, M_vals)
+
+Z = complexity(R, alpha, theta, sensory, Q, A_grid, E, M_vals, higher_dim, beta)
+
+fig = go.Figure(data=[go.Surface(z=Z, x=A_vals, y=M_vals, colorscale='Viridis', showscale=True)])
+
+fig.update_layout(
+    scene=dict(
+        xaxis_title='Attention (A)',
+        yaxis_title='Memory (M)',
+        zaxis_title='Complexity (C)',
+        bgcolor='rgba(0,0,0,0)'
+    ),
+    paper_bgcolor='rgba(0,0,0,0)',
+    font=dict(color='#eee', family='Futura PT, Segoe UI'),
+    margin=dict(l=0, r=0, b=0, t=40)
+)
+
+st.plotly_chart(fig, use_container_width=True)
+
+# Sound controls
+col_sound = st.columns([1,4,4])
+with col_sound[0]:
+    sound_enabled = st.checkbox("Enable Sound Effects 🔊", value=st.session_state.sound_enabled)
+    st.session_state.sound_enabled = sound_enabled
+
+if sound_enabled:
+    with col_sound[1]:
+        volume = st.slider("Volume", 0.0, 1.0, st.session_state.volume, 0.05)
+        st.session_state.volume = volume
+    st.markdown(
+        f"""
+        <audio id="sliderSound" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" volume="{st.session_state.volume}"></audio>
+        <script>
+        const sliders = window.parent.document.querySelectorAll('input[type=range]');
+        const sound = document.getElementById('sliderSound');
+        sound.volume = {st.session_state.volume};
+        sliders.forEach(slider => {{
+            slider.oninput = () => {{ sound.play(); }};
+        }});
+        </script>
+        """,
+        unsafe_allow_html=True
+    )
+else:
+    st.markdown("<script>const sliders = window.parent.document.querySelectorAll('input[type=range]'); sliders.forEach(slider => {{ slider.oninput = null; }});</script>", unsafe_allow_html=True)
