@@ -1,38 +1,38 @@
 import streamlit as st
 
-def calculate_complexity(R, alpha, beta, theta, S, Q, A, E, M, D_n):
-    numerator = (R * (alpha ** theta) * S * Q * (1.2 * A) * E * (1.5 * M))
-    denominator = D_n * (beta ** theta)
-    C = numerator / denominator
-    return C
+def show_about():
+    st.title("About The Complex Equation Simulator")
+    
+    st.markdown("""
+    ### What does this equation solve?
 
-st.title("Sample Scenario: The Complex Equation Simulator")
+    Our equation quantifies **complexity (C)** — a measure of how intricate or rich a system or experience is — by combining multiple meaningful factors:
 
-# Sample parameters
-R = 100
-alpha = 1.1
-beta = 0.9
-theta = 2
-S = 8
-Q = 7
-A = 0.85
-E = 0.95
-M = 0.7
-D_n = 4
+    - **Reality magnitude (R):** The scale or intensity of the system under study  
+    - **Cognitive and sensory parameters:** Attention, memory, sensory processing, emotional engagement, and quality — capturing how information is perceived and processed  
+    - **Higher-dimensional space (Dₙ):** Accounting for abstract or extended dimensions that influence complexity  
+    - **Nonlinear scaling factors:** Exponents that describe how different components interact and amplify effects  
 
-st.subheader("Input Parameters")
-st.write(f"Reality magnitude (R): {R}")
-st.write(f"Alpha (α): {alpha}")
-st.write(f"Beta (β): {beta}")
-st.write(f"Theta (θ): {theta}")
-st.write(f"Sensory processing (S): {S}")
-st.write(f"Quality factor (Q): {Q}")
-st.write(f"Attention (A): {A}")
-st.write(f"Emotional engagement (E): {E}")
-st.write(f"Memory (M): {M}")
-st.write(f"Higher-dimensional space (Dₙ): {D_n}")
+    By mathematically linking these, the equation models how changes in any parameter affect the overall complexity.
 
-complexity = calculate_complexity(R, alpha, beta, theta, S, Q, A, E, M, D_n)
+    ### What does the app do?
 
-st.subheader("Calculated Complexity (C)")
-st.write(f"C ≈ {complexity:.2f}")
+    - Offers a **dynamic, interactive environment** to experiment with the equation in real time  
+    - Lets users **adjust parameters** like attention or sensory input via intuitive controls  
+    - Provides **immediate feedback** by recalculating complexity and updating visualizations  
+    - Bridges theory and practice by making an abstract concept **accessible and engaging**  
+    - Acts as a **tool for researchers, educators, and curious minds** exploring consciousness, cognition, AI, and complex systems  
+
+    ### Why is this important?
+
+    - Transforms a complex scientific model into a **hands-on exploration platform**  
+    - Enables **“what-if” scenarios** to deepen understanding of how various factors contribute to complexity  
+    - Opens avenues for **collaborations across neuroscience, philosophy, AI, and education**  
+    - Sparks innovation by providing a **new way to conceptualize and work with complexity**
+
+    *This app is a collaborative creation between human ingenuity and AI, demonstrating the power of partnership in advancing understanding.*
+    """)
+
+# Example: Call show_about() somewhere in your app flow, or make a sidebar button:
+if st.sidebar.button("About"):
+    show_about()
