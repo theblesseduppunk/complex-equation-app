@@ -1,38 +1,63 @@
 import streamlit as st
 
-def show_about():
-    st.title("About The Complex Equation Simulator")
-    
-    st.markdown("""
-    ### What does this equation solve?
+# Custom CSS for animations
+st.markdown("""
+<style>
+@keyframes fadeSlide {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+.possibility {
+    animation: fadeSlide 1s ease-out forwards;
+    margin-bottom: 20px;
+    padding: 10px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, rgba(30,30,30,0.9), rgba(60,60,60,0.8));
+    border: 1px solid rgba(255,255,255,0.3);
+    box-shadow: 0px 0px 10px rgba(0,255,255,0.5);
+    font-family: 'Futura', sans-serif;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.possibility-1 { animation-delay: 0.2s; }
+.possibility-2 { animation-delay: 0.4s; }
+.possibility-3 { animation-delay: 0.6s; }
+.possibility-4 { animation-delay: 0.8s; }
+.possibility-5 { animation-delay: 1s; }
+.possibility-6 { animation-delay: 1.2s; }
+.possibility-7 { animation-delay: 1.4s; }
+.possibility-8 { animation-delay: 1.6s; }
+.possibility-9 { animation-delay: 1.8s; }
+.possibility-10 { animation-delay: 2s; }
+.possibility-11 { animation-delay: 2.2s; }
+.possibility-12 { animation-delay: 2.4s; }
+.emoji {
+    font-size: 1.5em;
+}
+</style>
+""", unsafe_allow_html=True)
 
-    Our equation quantifies **complexity (C)** — a measure of how intricate or rich a system or experience is — by combining multiple meaningful factors:
+# Possibilities list with animations
+possibilities = [
+    ("🧠", "Model Consciousness Dynamics"),
+    ("🎯", "Simulate Cognitive States"),
+    ("📚", "Analyze Learning Processes"),
+    ("👁", "Explore Sensory Processing Effects"),
+    ("✨", "Study Higher-Dimensional Influences"),
+    ("🤖", "Test AI or Neural Network Behavior"),
+    ("🧬", "Investigate Neurological Conditions"),
+    ("📜", "Support Philosophical Inquiry"),
+    ("🎓", "Enhance Educational Tools"),
+    ("🚀", "Drive Innovation in Technology"),
+    ("🌍", "Visualize Complex Systems"),
+    ("🔗", "Facilitate Cross-Disciplinary Research")
+]
 
-    - **Reality magnitude (R):** The scale or intensity of the system under study  
-    - **Cognitive and sensory parameters:** Attention, memory, sensory processing, emotional engagement, and quality — capturing how information is perceived and processed  
-    - **Higher-dimensional space (Dₙ):** Accounting for abstract or extended dimensions that influence complexity  
-    - **Nonlinear scaling factors:** Exponents that describe how different components interact and amplify effects  
-
-    By mathematically linking these, the equation models how changes in any parameter affect the overall complexity.
-
-    ### What does the app do?
-
-    - Offers a **dynamic, interactive environment** to experiment with the equation in real time  
-    - Lets users **adjust parameters** like attention or sensory input via intuitive controls  
-    - Provides **immediate feedback** by recalculating complexity and updating visualizations  
-    - Bridges theory and practice by making an abstract concept **accessible and engaging**  
-    - Acts as a **tool for researchers, educators, and curious minds** exploring consciousness, cognition, AI, and complex systems  
-
-    ### Why is this important?
-
-    - Transforms a complex scientific model into a **hands-on exploration platform**  
-    - Enables **“what-if” scenarios** to deepen understanding of how various factors contribute to complexity  
-    - Opens avenues for **collaborations across neuroscience, philosophy, AI, and education**  
-    - Sparks innovation by providing a **new way to conceptualize and work with complexity**
-
-    *This app is a collaborative creation between human ingenuity and AI, demonstrating the power of partnership in advancing understanding.*
-    """)
-
-# Example: Call show_about() somewhere in your app flow, or make a sidebar button:
-if st.sidebar.button("About"):
-    show_about()
+for i, (emoji, text) in enumerate(possibilities, start=1):
+    st.markdown(f"""
+    <div class="possibility possibility-{i}">
+        <span class="emoji">{emoji}</span> {text}
+    </div>
+    """, unsafe_allow_html=True)
