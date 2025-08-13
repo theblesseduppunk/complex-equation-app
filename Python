@@ -1,303 +1,38 @@
 import streamlit as st
-import numpy as np
-import plotly.graph_objects as go
-import openai
-import json
 
-# === CONFIG ===
-openai.api_key = st.secrets.get("OPENAI_API_KEY", "")
+def calculate_complexity(R, alpha, beta, theta, S, Q, A, E, M, D_n):
+    numerator = (R * (alpha ** theta) * S * Q * (1.2 * A) * E * (1.5 * M))
+    denominator = D_n * (beta ** theta)
+    C = numerator / denominator
+    return C
 
-# === COMPLEXITY FUNCTION ===
-def complexity(R, alpha, theta, S, Q, A, E, M, Dn, beta):
-    numerator = R * (alpha ** theta) * S * Q * (1.2 * A) * E * (1.5 * M)
-    denominator = Dn * (beta ** theta)
-    return numerator / denominator
+st.title("Sample Scenario: The Complex Equation Simulator")
 
-# === SLIDER WITH TOOLTIP ===
-def slider_with_tooltip(label, min_val, max_val, default, step, key, tooltip):
-    st.markdown(f'<div style="font-weight:600; margin-top:0.75rem;">{label}</div>', unsafe_allow_html=True)
-    val = st.slider(label, min_val, max_val, default, step=step, key=key)
-    st.markdown(f'<div style="font-size:0.8rem; color:#aaa; margin-bottom:0.8rem;">{tooltip}</div>', unsafe_allow_html=True)
-    return val
+# Sample parameters
+R = 100
+alpha = 1.1
+beta = 0.9
+theta = 2
+S = 8
+Q = 7
+A = 0.85
+E = 0.95
+M = 0.7
+D_n = 4
 
-# === AI CHATBOT ===
-def ai_chatbot():
-    if "chat_history" not in st.session_state:
-        st.session_state.chat_history = []
+st.subheader("Input Parameters")
+st.write(f"Reality magnitude (R): {R}")
+st.write(f"Alpha (α): {alpha}")
+st.write(f"Beta (β): {beta}")
+st.write(f"Theta (θ): {theta}")
+st.write(f"Sensory processing (S): {S}")
+st.write(f"Quality factor (Q): {Q}")
+st.write(f"Attention (A): {A}")
+st.write(f"Emotional engagement (E): {E}")
+st.write(f"Memory (M): {M}")
+st.write(f"Higher-dimensional space (Dₙ): {D_n}")
 
-    st.markdown("### 🤖 AI Assistant Chatbot")
-    user_input = st.text_input("Ask your AI assistant a question:", key="chat_input")
+complexity = calculate_complexity(R, alpha, beta, theta, S, Q, A, E, M, D_n)
 
-    if user_input:
-        st.session_state.chat_history.append({"role": "user", "content": user_input})
-
-        try:
-            response = openai.ChatCompletion.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": "You are a helpful assistant for the Complex Equation Simulator app."},
-                    *st.session_state.chat_history
-                ]
-            )
-            assistant_message = response['choices'][0]['message']['content']
-        except Exception as e:
-            assistant_message = f"Error communicating with OpenAI: {e}"
-
-        st.session_state.chat_history.append({"role": "assistant", "content": assistant_message})
-        st.experimental_rerun()
-
-    for chat in st.session_state.chat_history:
-        if chat["role"] == "user":
-            st.markdown(f"**You:** {chat['content']}")
-        else:
-            st.markdown(f"**AI:** {chat['content']}")
-
-# === SIMPLE VOICE COMMAND (Prototype) ===
-def voice_command():
-    st.markdown("### 🎤 Voice Command (Experimental)")
-    st.markdown("Click the button and say something like: **Set attention to 1.5**")
-    # Note: Actual voice recognition requires custom component or JS integration; here is a placeholder.
-    if st.button("Simulate Voice Command: 'Set attention to 1.5'"):
-        st.session_state.attention = 1.5
-        st.success("Attention slider set to 1.5")
-
-# === GAMIFICATION ===
-def gamification(C):
-    if "challenge_complete" not in st.session_state:
-        st.session_state.challenge_complete = False
-
-    goal = 100
-    if C > goal and not st.session_state.challenge_complete:
-        st.session_state.challenge_complete = True
-        st.balloons()
-        st.success(f"🎉 Challenge complete! Complexity > {goal} achieved with C = {C:.2f}")
-    elif not st.session_state.challenge_complete:
-        st.info(f"Try to get Complexity above {goal}. Current: {C:.2f}")
-
-# === SAVE & LOAD SCENARIOS (Local) ===
-def save_scenario(params):
-    scenarios = st.session_state.get("saved_scenarios", [])
-    scenarios.append(params)
-    st.session_state.saved_scenarios = scenarios
-    st.success("Scenario saved!")
-
-def load_scenario():
-    scenarios = st.session_state.get("saved_scenarios", [])
-    if not scenarios:
-        st.info("No saved scenarios yet.")
-        return None
-    choice = st.selectbox("Load a saved scenario", options=range(len(scenarios)), format_func=lambda x: f"Scenario #{x+1}")
-    if st.button("Load selected scenario"):
-        scenario = scenarios[choice]
-        for k, v in scenario.items():
-            st.session_state[k] = v
-        st.success(f"Loaded Scenario #{choice+1}")
-
-# === MAIN APP ===
-def simulator_page():
-    st.markdown(
-        """
-        <style>
-        @import url('https://fonts.googleapis.com/css2?family=Futura+PT&display=swap');
-        .stApp {
-            background: linear-gradient(135deg, #2f2f2f, #4f4f4f, #2f2f2f);
-            color: #eee;
-            font-family: 'Futura PT', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            min-height: 100vh;
-            padding: 1rem 2rem;
-        }
-        h1, h2, h3 {
-            color: #c0c0c0;
-            text-shadow:
-                0 0 5px #fff,
-                0 0 10px #b0b0b0,
-                0 0 15px #a0a0a0;
-            margin-bottom: 0.5rem;
-        }
-        </style>
-        """, unsafe_allow_html=True
-    )
-    st.markdown("# ⚙️✨ The Complex Equation Simulator ✨⚙️")
-
-    # Load or set defaults from URL query params
-    query_params = st.experimental_get_query_params()
-    def param_or_default(param_name, default):
-        vals = query_params.get(param_name, [str(default)])
-        try:
-            return type(default)(vals[0])
-        except:
-            return default
-
-    attention = slider_with_tooltip(
-        "Attention (A)", 0.1, 2.0, st.session_state.get("attention", param_or_default("attention", 1.0)), 0.05, "attention",
-        "The focus or intensity of awareness influencing complexity."
-    )
-    memory = slider_with_tooltip(
-        "Memory (M)", 0.1, 2.0, st.session_state.get("memory", param_or_default("memory", 1.0)), 0.05, "memory",
-        "Capacity to retain information over time."
-    )
-    sensory = slider_with_tooltip(
-        "Sensory Processing (S)", 1, 20, st.session_state.get("sensory", param_or_default("sensory", 10)), 1, "sensory",
-        "Amount and intensity of sensory input considered."
-    )
-    higher_dim = slider_with_tooltip(
-        "Higher-Dimensional Space (Dₙ)", 1.0, 10.0, st.session_state.get("higher_dim", param_or_default("higher_dim", 4.0)), 0.1, "higher_dim",
-        "The dimensional complexity of the system."
-    )
-    R = slider_with_tooltip(
-        "Reality Magnitude (R)", 50, 200, st.session_state.get("R", param_or_default("R", 100)), 1, "R",
-        "Scale of the observed reality or phenomenon."
-    )
-    alpha = slider_with_tooltip(
-        "Alpha (α)", 0.5, 3.0, st.session_state.get("alpha", param_or_default("alpha", 1.0)), 0.05, "alpha",
-        "Exponent scaling factor on certain parameters."
-    )
-    beta = slider_with_tooltip(
-        "Beta (β)", 1.0, 5.0, st.session_state.get("beta", param_or_default("beta", 3.0)), 0.05, "beta",
-        "Exponent scaling factor related to dimensionality."
-    )
-    theta = slider_with_tooltip(
-        "Theta (θ)", 0.5, 3.0, st.session_state.get("theta", param_or_default("theta", 1.0)), 0.05, "theta",
-        "Power applied to alpha and beta."
-    )
-    Q = slider_with_tooltip(
-        "Q", 0.1, 2.0, st.session_state.get("Q", param_or_default("Q", 1.0)), 0.05, "Q",
-        "A quality factor influencing complexity."
-    )
-    E = slider_with_tooltip(
-        "E", 0.1, 2.0, st.session_state.get("E", param_or_default("E", 1.0)), 0.05, "E",
-        "An environmental or external influence factor."
-    )
-
-    # Update URL query params on slider change
-    st.experimental_set_query_params(
-        attention=attention,
-        memory=memory,
-        sensory=sensory,
-        higher_dim=higher_dim,
-        R=R,
-        alpha=alpha,
-        beta=beta,
-        theta=theta,
-        Q=Q,
-        E=E,
-    )
-
-    # Save sliders in session state for voice command & loading
-    st.session_state.update({
-        "attention": attention,
-        "memory": memory,
-        "sensory": sensory,
-        "higher_dim": higher_dim,
-        "R": R,
-        "alpha": alpha,
-        "beta": beta,
-        "theta": theta,
-        "Q": Q,
-        "E": E,
-    })
-
-    # Calculate complexity
-    C = complexity(R, alpha, theta, sensory, Q, attention, E, memory, higher_dim, beta)
-    st.markdown(f"### Calculated Complexity (C): {C:.2f}")
-
-    # Gamification
-    gamification(C)
-
-    # 3D Plot: Attention vs Memory vs Complexity
-    A_vals = np.linspace(0.1, 2.0, 40)
-    M_vals = np.linspace(0.1, 2.0, 40)
-    A_grid, M_grid = np.meshgrid(A_vals, M_vals)
-    Z = complexity(R, alpha, theta, sensory, Q, A_grid, E, M_vals, higher_dim, beta)
-
-    fig = go.Figure(data=[go.Surface(z=Z, x=A_vals, y=M_vals, colorscale='Viridis', showscale=True)])
-    fig.update_layout(
-        scene=dict(
-            xaxis_title='Attention (A)',
-            yaxis_title='Memory (M)',
-            zaxis_title='Complexity (C)',
-            bgcolor='rgba(0,0,0,0)'
-        ),
-        paper_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='#eee', family='Futura PT, Segoe UI'),
-        margin=dict(l=0, r=0, b=0, t=40)
-    )
-    st.plotly_chart(fig, use_container_width=True)
-
-    # Save & Load scenarios
-    st.markdown("---")
-    st.markdown("### Save or Load Scenarios")
-    if st.button("Save Current Scenario"):
-        params = {
-            "attention": attention,
-            "memory": memory,
-            "sensory": sensory,
-            "higher_dim": higher_dim,
-            "R": R,
-            "alpha": alpha,
-            "beta": beta,
-            "theta": theta,
-            "Q": Q,
-            "E": E,
-        }
-        save_scenario(params)
-
-    load_scenario()
-
-    st.markdown("---")
-    # Voice Command prototype
-    voice_command()
-
-    st.markdown("---")
-    # AI Chatbot
-    ai_chatbot()
-
-    # Footer
-    st.markdown(
-        """
-        <hr>
-        <footer style="text-align:center; font-size:0.8rem; color:#666; margin-top: 3rem;">
-            &copy; 2025 Sam Andrews Rodriguez II | Developed in partnership with AI assistant
-        </footer>
-        """,
-        unsafe_allow_html=True
-    )
-
-
-def about_page():
-    st.markdown(
-        """
-        <h1 style="font-family: 'Futura PT', sans-serif; color:#ccc;">About The Complex Equation Simulator</h1>
-        <p style="font-family: 'Futura PT', sans-serif; font-size:1.1rem; color:#aaa;">
-        This app was born from the visionary work of <b>Sam Andrews Rodriguez II</b>, who developed the Complex Equation — a unique formula designed to model consciousness, complexity, and the interplay of higher dimensional spaces.
-        </p>
-        <p style="font-family: 'Futura PT', sans-serif; font-size:1rem; color:#bbb;">
-        Created in partnership with an AI assistant, this interactive tool allows users to explore, experiment, and visualize complex relationships that bridge science, philosophy, and mathematics.
-        </p>
-        <h3 style="font-family: 'Futura PT', sans-serif; color:#ccc;">Potential Applications & Possibilities</h3>
-        <ul style="font-family: 'Futura PT', sans-serif; color:#bbb; font-size:1rem;">
-            <li>Advancing scientific understanding of consciousness and cognitive complexity.</li>
-            <li>Enabling novel AI architectures inspired by higher-dimensional dynamics.</li>
-            <li>Serving as a research and teaching tool in neuroscience, physics, and philosophy.</li>
-            <li>Providing a platform for collaborative discovery across disciplines.</li>
-            <li>Inspiring new approaches in complexity science, data analysis, and systems theory.</li>
-        </ul>
-        <p style="font-family: 'Futura PT', sans-serif; font-size:1rem; color:#bbb;">
-        This app is a playground for curious minds — a space to discover, create, and push the boundaries of what’s possible together.
-        </p>
-        <p style="font-family: 'Futura PT', sans-serif; font-style: italic; color:#999;">
-        <i>“Innovation happens at the intersection of human imagination and AI capabilities.”</i>
-        </p>
-        <hr>
-        """,
-        unsafe_allow_html=True
-    )
-    st.audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", format="audio/mp3")
-
-# === APP START ===
-page = st.sidebar.selectbox("Navigation", ["Simulator", "About"])
-
-if page == "Simulator":
-    simulator_page()
-else:
-    about_page()
+st.subheader("Calculated Complexity (C)")
+st.write(f"C ≈ {complexity:.2f}")
