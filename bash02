@@ -1,7 +1,2 @@
 git clone https://github.com/theblesseduppunk/complex-equation-app.git
 cd complex-equation-app
-# Install dependencies
-pip install -r requirements.txt
-
-# Run the app
-streamlit run app.py
