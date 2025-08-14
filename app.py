@@ -10,174 +10,142 @@ import time
 # ------------------------------
 # Page Setup
 # ------------------------------
-st.set_page_config(page_title="MindScape (The Complex Equation Simulator)", page_icon="🧠", layout="wide")
+st.set_page_config(page_title="MindScape (The Complex Equation Simulator)", 
+                   page_icon="🧠", layout="wide")
 
 # ------------------------------
-# CSS: Modern Dark Cyberpunk Theme
+# Custom CSS & Futuristic Styling
 # ------------------------------
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
 
-body, h1, h2, h3, p, div, span, button, label { 
-    font-family:'Roboto Mono', monospace !important; 
-    background-color:#070707; margin:0; padding:0;
-    color:#eee;
+body {background-color:#0a0a0a; color:white; font-family:'Orbitron', monospace;}
+
+@keyframes fadeIn {from {opacity:0; transform:translateY(-10px);} to {opacity:1; transform:translateY(0);} }
+@keyframes pulse {0% {box-shadow:0 0 10px cyan;} 50% {box-shadow:0 0 20px magenta;} 100% {box-shadow:0 0 10px cyan;}}
+
+.welcome-box {
+    animation: fadeIn 1.5s ease-out forwards;
+    padding: 30px; border-radius: 15px;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(10px);
+    box-shadow: 0 0 30px rgba(0,255,255,0.5);
+    color: #00ffff; text-align:center; margin-bottom:30px;
 }
-
-/* HUD boxes */
-.hud-box {
-    background: rgba(0,0,0,0.35); 
-    border:1.5px solid #00cccc; 
-    border-radius:15px; 
-    padding:15px; 
-    margin-bottom:20px; 
-    box-shadow:0 0 20px #00cccc,0 0 25px #cc00ff;
+.launch-btn {
+    background: linear-gradient(90deg, cyan, magenta); border:none; 
+    padding:15px 30px; border-radius:25px; color:black; font-size:1.3em; font-weight:bold; cursor:pointer; transition:all 0.3s ease;
 }
+.launch-btn:hover { transform: scale(1.05); box-shadow: 0 0 25px cyan, 0 0 25px magenta; }
 
-/* Neon headers for tabs */
-.sim-header {color:#00cccc; text-shadow:0 0 5px #00cccc,0 0 10px #cc00ff;}
-.poss-header {color:#cc00ff; text-shadow:0 0 5px #cc00ff,0 0 10px #00cccc;}
-.aibuddy-header {color:#ffcc00; text-shadow:0 0 5px #ffcc00,0 0 10px #ffaa00;}
+.slider-label {color:#00ffff; font-weight:bold;}
+.metric-display {animation: pulse 2s infinite; font-size:1.5em; color:#00ffff;}
 
-/* Metric display */
-.metric-display {animation: pulse 2s infinite, glowPulse 3s infinite; font-size:2.5em; text-align:center; color:#00cccc;}
-@keyframes pulse {0%{text-shadow:0 0 5px #00cccc;}50%{text-shadow:0 0 12px #cc00ff;}100%{text-shadow:0 0 5px #00cccc;}}
-@keyframes glowPulse {0%{box-shadow:0 0 10px #00cccc;}50%{box-shadow:0 0 18px #cc00ff;}100%{box-shadow:0 0 10px #00cccc;}}
-
-/* Particle overlay */
-.particle-overlay {position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0; transition: all 1.5s ease;}
-.particle {position:absolute; width:2px; height:2px; background:#00cccc; border-radius:50%; opacity:0.6; animation: floatStars linear infinite;}
-.neon-streak {position:absolute; width:2px; height:100px; background:linear-gradient(180deg,#cc00ff,#00cccc); opacity:0.5; animation: streakMove linear infinite;}
-@keyframes floatStars {0%{transform: translateY(0) translateX(0);}100%{transform: translateY(-110vh) translateX(50px);}}
-@keyframes streakMove {0%{transform: translateY(100vh) translateX(0);}100%{transform: translateY(-100vh) translateX(50px);}}
+.tab-header {font-size:2em; color:#00ffff; font-weight:bold; margin-top:10px;}
+.possibility {margin:10px 0; padding:10px; border-radius:10px; background: rgba(0,0,0,0.5); border:1px solid #00ffff; box-shadow:0 0 15px #ff00ff;}
 </style>
-
-<div class="particle-overlay" id="particle-container"></div>
-
-<script>
-function createParticles(state) {
-    const container = document.getElementById('particle-container');
-    container.innerHTML = '';
-    let count = 50;
-    let colorPrimary = '#00cccc';
-    let colorSecondary = '#cc00ff';
-    if(state === 'chaotic'){ count = 100; colorPrimary='#ff6600'; colorSecondary='#ff00cc';}
-    for(let i=0;i<count;i++){
-        const el = document.createElement('div');
-        el.className = (state==='chaotic')?'neon-streak':'particle';
-        el.style.left = Math.random()*100 + 'vw';
-        el.style.animationDuration = (2 + Math.random()*3)+'s';
-        el.style.height = (state==='chaotic')? (50 + Math.random()*100)+'px':'2px';
-        el.style.background = (state==='chaotic')? `linear-gradient(180deg, ${colorSecondary}, ${colorPrimary})` : colorPrimary;
-        container.appendChild(el);
-    }
-}
-</script>
 """, unsafe_allow_html=True)
 
 # ------------------------------
-# Welcome Box
+# Welcome Section
 # ------------------------------
 st.markdown("""
-<div class="hud-box" style="text-align:center;">
-    <div class="sim-header" style="font-size:2em;">🚀 MindScape</div>
-    <div style="font-size:1.2em; margin-top:10px;">
-        The Complex Equation Simulator by <b>Sam Andrews Rodriguez II</b><br>
-        Simulation creator, the first of its kind.<br>
-        Explore consciousness, cognitive states, memory, attention, environment, and AI scenarios.
+<div class="welcome-box">
+    <div style="font-size:2.8em; font-weight:bold;">🚀 MindScape</div>
+    <div style="margin-top:10px; font-size:1.3em;">
+        A simulation creator, the first of its kind, by <b>Sam Andrews Rodriguez II</b>.<br>
+        Explore consciousness, creativity, dimensionality, and AI-driven scenarios.
     </div>
+    <hr style="border:0.5px solid #00ffff; margin:15px 0;">
+    <button class="launch-btn" onclick="window.scrollTo({top: 500, behavior: 'smooth'});">🔥 Launch Simulation</button>
 </div>
 """, unsafe_allow_html=True)
 
 # ------------------------------
-# Variables & Defaults
+# Sidebar for Parameters
 # ------------------------------
+st.sidebar.header("Adjust Parameters / Generate Scenarios")
 variables = ["R","alpha","theta","S","Q","A","E","M","Dn","beta","C"]
 default_values = {"R":5.0,"alpha":1.0,"theta":1.0,"S":5.0,"Q":5.0,"A":5.0,"E":5.0,"M":5.0,"Dn":5.0,"beta":1.0}
-demo_values = {"R":7.0,"alpha":1.2,"theta":1.0,"S":8.0,"Q":7.0,"A":9.0,"E":6.0,"M":8.0,"Dn":2.0,"beta":1.0}
-if "sliders" not in st.session_state: st.session_state.sliders = default_values.copy()
-if "history" not in st.session_state: st.session_state.history = []
 
-def generate_random_scenario(): return {k: round(random.uniform(0.1,10.0),1) for k in st.session_state.sliders.keys()}
-def compute_consciousness(R, alpha, theta, S, Q, A, E, M, Dn, beta): return (R*(alpha**theta)*S*Q*(1.3*A)*E*(1.6*M))/(Dn*(beta**theta))
+if "sliders" not in st.session_state:
+    st.session_state.sliders = default_values.copy()
+if "history" not in st.session_state:
+    st.session_state.history = []
+
+demo_values = {"R":7.0,"alpha":1.2,"theta":1.0,"S":8.0,"Q":7.0,"A":9.0,"E":6.0,"M":8.0,"Dn":2.0,"beta":1.0}
+
+def generate_random_scenario():
+    return {k: round(random.uniform(0.1,10.0),1) for k in st.session_state.sliders.keys()}
+
+def animate_sliders(target_values, steps=15, delay=0.03):
+    for i in range(1, steps+1):
+        for key in st.session_state.sliders:
+            current = st.session_state.sliders[key]
+            st.session_state.sliders[key] = current + (target_values[key]-current)*(i/steps)
+        time.sleep(delay)
+        st.experimental_rerun()
+
+def compute_consciousness(R, alpha, theta, S, Q, A, E, M, Dn, beta):
+    return (R*(alpha**theta)*S*Q*(1.3*A)*E*(1.6*M))/(Dn*(beta**theta))
+
 def ai_suggestions(current_values):
     suggestions = []
-    balanced = {k:5.0 for k in current_values.keys()}; suggestions.append(("Balanced", balanced))
-    high_c = {k: round(random.uniform(7.5,10.0),1) for k in current_values.keys()}; suggestions.append(("High Consciousness", high_c))
-    creative = {k: round(random.uniform(0.5,10.0),1) for k in current_values.keys()}; suggestions.append(("Creative AI Insight", creative))
+    balanced = {k:5.0 for k in current_values.keys()}
+    suggestions.append(("Balanced", balanced))
+    high_c = {k: round(random.uniform(7.5,10.0),1) for k in current_values.keys()}
+    suggestions.append(("High Consciousness", high_c))
+    creative = {k: round(random.uniform(0.5,10.0),1) for k in current_values.keys()}
+    suggestions.append(("Creative AI Insight", creative))
     return suggestions
 
 # ------------------------------
-# Sidebar
+# Scenario Buttons
 # ------------------------------
-st.sidebar.header("Adjust Parameters / Generate Scenarios")
+if st.sidebar.button("📈 Load Demo Scenario"):
+    animate_sliders(demo_values)
+if st.sidebar.button("🎲 Generate Random Scenario"):
+    animate_sliders(generate_random_scenario())
+
 target_variable = st.sidebar.selectbox("Select variable to solve for:", variables, index=variables.index("C"))
-col1, col2 = st.sidebar.columns(2)
+
+# Display sliders
 slider_values = {}
-for idx, var in enumerate(default_values.keys()):
-    col = col1 if idx % 2 == 0 else col2
-    slider_values[var] = col.slider(f"{var}",0.1,10.0,st.session_state.sliders[var],0.1)
+for var in default_values.keys():
+    slider_values[var] = st.sidebar.slider(f"{var}",0.1,10.0,st.session_state.sliders[var],0.1)
 
-if st.sidebar.button("📈 Load Demo Scenario"): st.session_state.sliders.update(demo_values)
-if st.sidebar.button("🎲 Generate Random Scenario"): st.session_state.sliders.update(generate_random_scenario())
+# AIBuddy Tab Section
+ai_tab = st.sidebar.expander("🤖 AIBuddy Suggestions")
+ai_choices = ai_suggestions(slider_values)
+for name, vals in ai_choices:
+    if ai_tab.button(f"💡 {name}"):
+        animate_sliders(vals)
 
-# Compute C
+# Compute target variable
 C = compute_consciousness(**slider_values)
 st.session_state.sliders.update(slider_values)
 st.session_state.history.append({**st.session_state.sliders,"C":C})
 
 # ------------------------------
-# Dynamic Gradient Background
+# Main Tabs
 # ------------------------------
-def set_dynamic_background(C_value):
-    if C_value < 4:
-        gradient = "linear-gradient(135deg, #1a1a40, #0c0c20)"
-    elif C_value <= 6:
-        gradient = "linear-gradient(135deg, #0c0c20, #003366, #6600cc)"
-    else:
-        gradient = "linear-gradient(135deg, #ff0066, #ffcc00, #00ffff)"
-    st.markdown(f"""
-    <style>
-    body {{
-        background: {gradient};
-        background-size: 400% 400%;
-        animation: gradientShift 15s ease infinite;
-    }}
-    @keyframes gradientShift {{
-        0%{{background-position:0% 50%;}}
-        50%{{background-position:100% 50%;}}
-        100%{{background-position:0% 50%;}}
-    }}
-    </style>
-    """, unsafe_allow_html=True)
+tabs = st.tabs(["Simulation","Beginner Equation","Possibilities","History"])
 
-set_dynamic_background(C)
-
-# ------------------------------
-# Particle overlay
-# ------------------------------
-particle_state = "starry" if C < 4 else "balanced" if C<=6 else "chaotic"
-st.markdown(f"<script>createParticles('{particle_state}');</script>", unsafe_allow_html=True)
-
-# ------------------------------
-# Tabs
-# ------------------------------
-sim_tab, possibilities_tab, aibuddy_tab = st.tabs(["🧠 Simulation", "🌌 Possibilities", "🤖 AIBuddy Hub"])
-
-# ------------------------------
-# Simulation Tab
-# ------------------------------
-with sim_tab:
-    st.markdown('<div id="simulation-section"></div>', unsafe_allow_html=True)
-    st.markdown(f"<div class='hud-box'><div class='sim-header'>📊 Result for {target_variable}</div><div class='metric-display'>{C:.4f}</div></div>", unsafe_allow_html=True)
-
+# -------- Simulation Tab --------
+with tabs[0]:
+    st.markdown("<div class='tab-header'>📊 Consciousness Simulation</div>", unsafe_allow_html=True)
+    influences = {k:slider_values[k] for k in ["R","A","S","Q","E","M"]}
+    most_influential = max(influences.items(), key=lambda x:x[1])[0]
+    st.info(f"Currently, **{most_influential}** has the largest impact on {target_variable}")
+    
+    st.markdown(f"<div class='metric-display'>{target_variable} = {C:.4f}</div>", unsafe_allow_html=True)
+    
     # 2D Plot
     x = np.linspace(0.1,10,50)
     y = (slider_values["R"]*(slider_values["alpha"]**slider_values["theta"])*x*slider_values["Q"]*(1.3*slider_values["A"])*slider_values["E"]*(1.6*slider_values["M"]))/(slider_values["Dn"]*(slider_values["beta"]**slider_values["theta"]))
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=x,y=y,mode="lines+markers",marker=dict(color="#00cccc")))
-    fig.update_layout(title=f"{target_variable} vs S",xaxis_title="S",yaxis_title=f"{target_variable}",template="plotly_dark")
+    fig.add_trace(go.Scatter(x=x, y=y, mode="lines+markers", name=f"{target_variable} vs S", marker=dict(color="#00ffff")))
+    fig.update_layout(title=f"{target_variable} vs Stimulus (S)", xaxis_title="Stimulus (S)", yaxis_title=f"{target_variable}", template="plotly_dark")
     st.plotly_chart(fig,use_container_width=True)
 
     # 3D Surface
@@ -200,88 +168,56 @@ with sim_tab:
     fig3d.update_layout(scene=dict(xaxis_title=x_var, yaxis_title=y_var, zaxis_title="C"),template="plotly_dark",height=600)
     st.plotly_chart(fig3d,use_container_width=True)
 
-    # Scenario History
-    st.subheader("📋 Scenario History / Comparison")
-    st.dataframe(pd.DataFrame(st.session_state.history))
-
-# ------------------------------
-# Possibilities Tab
-# ------------------------------
-with possibilities_tab:
-    # Summary of Potential
-    st.markdown("""
-    <div class='hud-box'>
-        <h2 class='poss-header'>💡 Summary of MindScape Potential</h2>
-        <ul class='possibility'>
-            <li><b>Human Cognition Insights:</b> Explore how attention, memory, sensory processing, and environment shape consciousness.</li>
-            <li><b>AI-Human Interaction:</b> AI-assisted scenario guidance, decision modeling, and creativity optimization.</li>
-            <li><b>Virtual & Mixed Reality:</b> Test cognitive and behavioral outcomes in VR and hybrid environments.</li>
-            <li><b>Theoretical & Scientific Exploration:</b> Simulate extreme or untested cognitive conditions safely.</li>
-            <li><b>Real-World Applications:</b> Education, training, productivity, mental health, and human performance modeling.</li>
-            <li><b>Creative Possibilities:</b> Generate inspiration for art, music, narratives, or AI-driven interactive worlds.</li>
-        </ul>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # Detailed Scenario Lists
-    st.markdown("""
-    <div class='hud-box'>
-    <h2 class='poss-header'>🚀 Detailed Scenario Categories</h2>
+# -------- Beginner Equation Tab --------
+with tabs[1]:
+    st.markdown("<div class='tab-header'>🌐 Beginner Creativity Landscape</div>", unsafe_allow_html=True)
+    R_val = st.slider("Reality (R)", 0.1, 10.0, 5.0, 0.1, key="R_dynamic")
+    D3_val = st.slider("Dimensionality (D³)", 0.1, 10.0, 2.0, 0.1, key="D3_dynamic")
     
-    <h3 style='color:#00ffcc;'>🌐 Real World Scenarios</h3>
-    <ul class='possibility'>
-        <li>Human cognitive optimization in workplace settings</li>
-        <li>Stress & attention management for learning</li>
-        <li>Social interaction prediction and outcome analysis</li>
-        <li>Memory enhancement exercises</li>
-    </ul>
+    R_range = np.linspace(0.1, 10, 30)
+    D_range = np.linspace(0.1, 10, 30)
+    C_grid = np.zeros((len(R_range), len(D_range)))
+    for i, r in enumerate(R_range):
+        for j, d in enumerate(D_range):
+            C_grid[i, j] = r / (d**3)
 
-    <h3 style='color:#cc00ff;'>🕹 Virtuality Scenarios</h3>
-    <ul class='possibility'>
-        <li>Immersive VR simulations of cognitive states</li>
-        <li>Virtual collaborative problem solving</li>
-        <li>Scenario-based learning in virtual environments</li>
-        <li>Adaptive AI-driven training simulations</li>
-    </ul>
+    fig_dynamic = go.Figure(data=[
+        go.Surface(z=C_grid, x=R_range, y=D_range, colorscale='Viridis', opacity=0.9, showscale=True,
+                   hovertemplate='R: %{x:.2f}<br>D³: %{y:.2f}<br>C: %{z:.2f}<extra></extra>'),
+        go.Scatter3d(x=[R_val], y=[D3_val], z=[R_val / (D3_val**3)],
+                     mode='markers+text', marker=dict(size=6, color='red'), text=["Current Value"], textposition="top center")
+    ])
+    fig_dynamic.update_layout(scene=dict(xaxis_title='Reality (R)', yaxis_title='Dimensionality (D³)', zaxis_title='Creativity (C)'),
+                              template='plotly_dark', height=600)
+    st.plotly_chart(fig_dynamic, use_container_width=True)
+    st.markdown(f"<div class='metric-display'>Creativity (C) = {R_val / (D3_val**3):.4f}</div>", unsafe_allow_html=True)
 
-    <h3 style='color:#ffaa00;'>🤖 AI & Hybrid Scenarios</h3>
-    <ul class='possibility'>
-        <li>AI-guided human decision modeling</li>
-        <li>AI-assisted scenario creation for complex environments</li>
-        <li>Joint real-world + AI simulations for behavioral analysis</li>
-        <li>Virtual worlds predicting real-world outcomes</li>
-        <li>AI-driven multi-agent interactions in hybrid spaces</li>
-    </ul>
-
-    <h3 style='color:#00ffff;'>🌌 Mixed Reality / Infinite Possibilities</h3>
-    <ul class='possibility'>
-        <li>Predictive cognition simulations linking VR and real life</li>
-        <li>AI-enhanced social experiment modeling</li>
-        <li>Joint virtuality + AI-guided training</li>
-        <li>Exploration of consciousness under hybrid reality conditions</li>
-        <li>Dynamic simulations of attention, memory, and perception in real & virtual environments</li>
+# -------- Possibilities Tab --------
+with tabs[2]:
+    st.markdown("<div class='tab-header'>✨ Possibilities</div>", unsafe_allow_html=True)
+    st.markdown("""
+    <div class='possibility'>
+    MindScape can simulate consciousness dynamics, creativity landscapes, and interactions between human, AI, and virtual dimensions.
+    It allows exploration of:
+    <ul>
+        <li>Real-world + AI scenarios</li>
+        <li>Virtual + real-world interplay</li>
+        <li>Dimensionality-inspired creative experiments</li>
+        <li>Neuro-interactive art, problem-solving, and immersive experiences</li>
+        <li>AI-driven insights into human cognition and creativity</li>
     </ul>
     </div>
     """, unsafe_allow_html=True)
 
-# ------------------------------
-# AIBuddy Hub Tab
-# ------------------------------
-with aibuddy_tab:
-    st.subheader("💡 AI Suggestions")
-    ai_choices = ai_suggestions(slider_values)
-    ai_names = [name for name,_ in ai_choices]
-    ai_selected = st.selectbox("Select AI Scenario", ai_names)
-    if st.button("Apply Scenario"):
-        selected_vals = dict(dict(ai_choices)[ai_selected])
-        st.session_state.sliders.update(selected_vals)
-        st.experimental_rerun()
-
-    st.subheader("💬 Ask AIBuddy")
-    user_question = st.text_input("Type a question:")
-    if st.button("Consult AIBuddy"):
-        if user_question.strip():
-            response = f"AIBuddy Response: Adjust variables such as 'A' and 'S' to optimize {target_variable}. Explore creative scenarios!"
-            st.markdown(f"<div class='hud-box'>{response}</div>", unsafe_allow_html=True)
-        else:
-            st.warning("Type a question to get a response.")
+# -------- History Tab --------
+with tabs[3]:
+    st.markdown("<div class='tab-header'>📋 Scenario History / Comparison</div>", unsafe_allow_html=True)
+    history_df = pd.DataFrame(st.session_state.history)
+    st.dataframe(history_df)
+    
+    data = {**st.session_state.sliders,"C":C}
+    df = pd.DataFrame([data])
+    csv_buffer = StringIO()
+    df.to_csv(csv_buffer,index=False)
+    st.download_button("Download Result as CSV",csv_buffer.getvalue(),"mindscape_result.csv","text/csv")
+    st.download_button("Download Result as JSON",json.dumps(data,indent=4),"mindscape_result.json","application/json")
