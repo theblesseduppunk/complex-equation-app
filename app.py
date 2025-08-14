@@ -71,6 +71,8 @@ st.sidebar.header("Adjust Parameters or Generate Scenarios")
 default_values = {"R":5.0,"alpha":1.0,"theta":1.0,"S":5.0,"Q":5.0,"A":5.0,"E":5.0,"M":5.0,"Dn":5.0,"beta":1.0}
 if "sliders" not in st.session_state:
     st.session_state.sliders = default_values.copy()
+if "history" not in st.session_state:
+    st.session_state.history = []
 
 demo_values = {"R":7.0,"alpha":1.2,"theta":1.0,"S":8.0,"Q":7.0,"A":9.0,"E":6.0,"M":8.0,"Dn":2.0,"beta":1.0}
 
@@ -88,6 +90,12 @@ def animate_sliders(target_values, steps=20, delay=0.03):
         time.sleep(delay)
         st.experimental_rerun()
 
+def compute_consciousness(R, alpha, theta, S, Q, A, E, M, Dn, beta):
+    return (R*(alpha**theta)*S*Q*(1.3*A)*E*(1.6*M))/(Dn*(beta**theta))
+
+# ------------------------------
+# Buttons
+# ------------------------------
 if st.sidebar.button("📈 Load Demo Scenario"):
     animate_sliders(demo_values)
     st.markdown('<script>scrollToSimulation()</script>', unsafe_allow_html=True)
@@ -99,9 +107,9 @@ if st.sidebar.button("🎲 Generate Random Scenario"):
 # ------------------------------
 # Display Sliders
 # ------------------------------
-R = st.sidebar.slider("Sensory Processing (R)",0.1,10.0,st.session_state.sliders["R"],0.1)
-alpha = st.sidebar.slider("Alpha (α)",0.1,5.0,st.session_state.sliders["alpha"],0.1)
-theta = st.sidebar.slider("Theta (θ)",0.1,5.0,st.session_state.sliders["theta"],0.1)
+R = st.sidebar.slider("Sensory Processing (R)",0.1,10.0,st.session_state.sliders["R"],0.1, help="How strongly the senses influence consciousness")
+alpha = st.sidebar.slider("Alpha (α)",0.1,5.0,st.session_state.sliders["alpha"],0.1, help="Scaling factor for attention and learning")
+theta = st.sidebar.slider("Theta (θ)",0.1,5.0,st.session_state.sliders["theta"],0.1, help="Exponent for sensitivity")
 S = st.sidebar.slider("Stimulus (S)",0.1,10.0,st.session_state.sliders["S"],0.1)
 Q = st.sidebar.slider("Quality (Q)",0.1,10.0,st.session_state.sliders["Q"],0.1)
 A = st.sidebar.slider("Attention (A)",0.1,10.0,st.session_state.sliders["A"],0.1)
@@ -113,16 +121,16 @@ beta = st.sidebar.slider("Beta (β)",0.1,5.0,st.session_state.sliders["beta"],0.
 # ------------------------------
 # Compute Consciousness
 # ------------------------------
-@st.cache_data
-def compute_consciousness(R, alpha, theta, S, Q, A, E, M, Dn, beta):
-    return (R*(alpha**theta)*S*Q*(1.3*A)*E*(1.6*M))/(Dn*(beta**theta))
-
 C = compute_consciousness(R, alpha, theta, S, Q, A, E, M, Dn, beta)
+
+# Save scenario to history
+st.session_state.history.append({**st.session_state.sliders, "C": C})
 
 # ------------------------------
 # Sensitivity Highlight
 # ------------------------------
-most_influential = max({"R":R,"A":A,"S":S,"Q":Q,"E":E,"M":M}.items(), key=lambda x:x[1])[0]
+influences = {"R":R,"A":A,"S":S,"Q":Q,"E":E,"M":M}
+most_influential = max(influences.items(), key=lambda x:x[1])[0]
 st.info(f"Currently, **{most_influential}** has the largest impact on Consciousness (C)")
 
 # ------------------------------
@@ -132,21 +140,33 @@ st.markdown('<div id="simulation-section"></div>', unsafe_allow_html=True)
 st.subheader("📊 Equation Result")
 st.metric(label="Consciousness Level (C)", value=f"{C:.4f}")
 
+# Dynamic description
+desc = f"Consciousness (C) is influenced most by **{most_influential}**. Adjust sliders to explore how changes affect C."
+st.markdown(desc)
+
 # ------------------------------
 # Visualization
 # ------------------------------
 x = np.linspace(0.1,10,50)
 y = (R*(alpha**theta)*x*Q*(1.3*A)*E*(1.6*M))/(Dn*(beta**theta))
+color = f"rgb({min(255,int(C*5))},0,{255-min(255,int(C*5))})"
 fig = go.Figure()
-fig.add_trace(go.Scatter(x=x,y=y,mode="lines+markers",name="C vs S",marker=dict(color="cyan")))
+fig.add_trace(go.Scatter(x=x,y=y,mode="lines+markers",name="C vs S",marker=dict(color=color)))
 fig.update_layout(title="Consciousness Level vs Stimulus (S)",xaxis_title="Stimulus (S)",yaxis_title="Consciousness Level (C)",template="plotly_dark")
 st.plotly_chart(fig,use_container_width=True)
 
 # ------------------------------
+# Scenario History Table
+# ------------------------------
+st.subheader("📋 Scenario History / Comparison")
+history_df = pd.DataFrame(st.session_state.history)
+st.dataframe(history_df)
+
+# ------------------------------
 # Download CSV/JSON
 # ------------------------------
-data = {"R":[R],"alpha":[alpha],"theta":[theta],"S":[S],"Q":[Q],"A":[A],"E":[E],"M":[M],"Dn":[Dn],"beta":[beta],"C":[C]}
-df = pd.DataFrame(data)
+data = {**st.session_state.sliders,"C": C}
+df = pd.DataFrame([data])
 csv_buffer = StringIO()
 df.to_csv(csv_buffer,index=False)
 st.download_button("Download Result as CSV",csv_buffer.getvalue(),"complex_equation_result.csv","text/csv")
