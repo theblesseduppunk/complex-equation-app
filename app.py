@@ -12,37 +12,82 @@ import random
 st.set_page_config(page_title="MindScape (The Complex Equation Simulator)", page_icon="🧠", layout="wide")
 
 # ------------------------------
-# Styles
+# Animated HUD CSS
 # ------------------------------
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap');
-body, h1, h2, h3, p, div, span, button, label { font-family:'Roboto Mono', monospace !important; color:#00ffff !important; }
-@keyframes fadeIn {from {opacity:0; transform:translateY(-10px);} to {opacity:1; transform:translateY(0);} }
-@keyframes pulse {0% {box-shadow:0 0 10px cyan;} 50% {box-shadow:0 0 20px magenta;} 100% {box-shadow:0 0 10px cyan;}}
-.welcome-box {animation: fadeIn 1.5s ease-out forwards; padding:30px; border-radius:15px; background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); box-shadow: 0 0 30px rgba(0,255,255,0.5); text-align:center; margin-bottom:30px;}
-.launch-btn {background: linear-gradient(90deg, cyan, magenta); border:none; padding:15px 30px; border-radius:25px; color:black; font-size:1.3em; font-weight:bold; cursor:pointer; transition:all 0.3s ease;}
-.launch-btn:hover { transform: scale(1.05); box-shadow: 0 0 25px cyan, 0 0 25px magenta; }
+
+body, h1, h2, h3, p, div, span, button, label { 
+    font-family:'Roboto Mono', monospace !important; 
+    color:#00ffff !important; 
+    background-color:#0a0a0a;
+}
+
+@keyframes pulse {0% {text-shadow:0 0 5px cyan;} 50% {text-shadow:0 0 15px magenta;} 100% {text-shadow:0 0 5px cyan;}}
+@keyframes flicker {0%,19%,21%,23%,25%,54%,56%,100% {opacity:1;} 20%,22%,24%,55% {opacity:0.85;}}
+@keyframes glowPulse {0%{box-shadow:0 0 10px cyan;}50%{box-shadow:0 0 20px magenta;}100%{box-shadow:0 0 10px cyan;}}
+
+.hud-box {
+    background: rgba(0,0,0,0.5);
+    border: 2px solid #00ffff;
+    border-radius: 15px;
+    padding: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 0 20px #00ffff, 0 0 30px #ff00ff;
+    animation: flicker 3s infinite;
+}
+
+.neon-header {
+    color:#00ffff; 
+    font-size:2em; 
+    font-weight:bold; 
+    text-shadow:0 0 5px cyan, 0 0 10px magenta;
+    animation: pulse 2s infinite;
+}
+
+.neon-button {
+    background: linear-gradient(90deg, cyan, magenta); 
+    border:none; 
+    padding:15px 30px; 
+    border-radius:25px; 
+    color:black; 
+    font-size:1.3em; 
+    font-weight:bold; 
+    cursor:pointer; 
+    transition:all 0.3s ease;
+}
+.neon-button:hover { transform: scale(1.05); animation: glowPulse 1.5s infinite; }
+
 .slider-label {color:#00ffff; font-weight:bold;}
-.metric-display {animation: pulse 2s infinite; font-family:'Roboto Mono', monospace;}
-.possibility {margin:10px 0; padding:10px; border-radius:10px; background: rgba(0,0,0,0.5); border:1px solid #00ffff; box-shadow:0 0 15px #ff00ff;}
+.metric-display {
+    animation: pulse 2s infinite, glowPulse 3s infinite; 
+    font-family:'Roboto Mono', monospace; 
+    color:#00ffff; 
+    font-size:2.5em; 
+    text-align:center;
+}
+
+.possibility {margin:10px 0; padding:10px; border-radius:10px; background: rgba(0,0,0,0.3); border:1px solid #00ffff; box-shadow:0 0 15px #ff00ff;}
 </style>
-<script>
-function scrollToSimulation() { const element = document.getElementById('simulation-section'); if (element) { element.scrollIntoView({ behavior: 'smooth' }); } }
-</script>
-<div class="welcome-box">
-    <div style="font-size:2.8em; font-weight:bold;">🚀 MindScape</div>
-    <div style="margin-top:10px; font-size:1.3em;">
-        The Complex Equation Simulator by <b>Sam Andrews Rodriguez II</b>.<br>
+""", unsafe_allow_html=True)
+
+# ------------------------------
+# Welcome Box
+# ------------------------------
+st.markdown("""
+<div class="hud-box" style="text-align:center;">
+    <div class="neon-header">🚀 MindScape</div>
+    <div style="font-size:1.2em; margin-top:10px;">
+        The Complex Equation Simulator by <b>Sam Andrews Rodriguez II</b><br>
+        Simulation creator, the first of its kind.<br>
         Explore consciousness, cognitive states, memory, attention, environment, and AI scenarios.
     </div>
-    <hr style="border:0.5px solid #00ffff; margin:15px 0;">
-    <button class="launch-btn" onclick="scrollToSimulation()">🔥 Launch Simulation</button>
 </div>
 """, unsafe_allow_html=True)
 
 # ------------------------------
-# Variables
+# Variables & Defaults
 # ------------------------------
 variables = ["R","alpha","theta","S","Q","A","E","M","Dn","beta","C"]
 default_values = {"R":5.0,"alpha":1.0,"theta":1.0,"S":5.0,"Q":5.0,"A":5.0,"E":5.0,"M":5.0,"Dn":5.0,"beta":1.0}
@@ -89,8 +134,7 @@ sim_tab, possibilities_tab, aibuddy_tab = st.tabs(["🧠 Simulation", "🌌 Poss
 # ------------------------------
 with sim_tab:
     st.markdown('<div id="simulation-section"></div>', unsafe_allow_html=True)
-    st.subheader(f"📊 Result for {target_variable}")
-    st.markdown(f"<div class='metric-display' style='font-size:2em;color:#00ffff'>{C:.4f}</div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='hud-box'><div class='neon-header'>📊 Result for {target_variable}</div><div class='metric-display'>{C:.4f}</div></div>", unsafe_allow_html=True)
     
     # 2D Plot
     x = np.linspace(0.1,10,50)
@@ -100,20 +144,49 @@ with sim_tab:
     fig.update_layout(title=f"{target_variable} vs S",xaxis_title="S",yaxis_title=f"{target_variable}",template="plotly_dark")
     st.plotly_chart(fig,use_container_width=True)
 
+    # 3D Surface
+    st.subheader("🌐 3D Variable Interaction Map")
+    var_x, var_y = st.columns(2)
+    with var_x: x_var = st.selectbox("X-axis variable:", list(slider_values.keys()), index=list(slider_values.keys()).index("S"))
+    with var_y: y_var = st.selectbox("Y-axis variable:", list(slider_values.keys()), index=list(slider_values.keys()).index("A"))
+
+    X = np.linspace(0.1,10,30)
+    Y = np.linspace(0.1,10,30)
+    Z = np.zeros((len(X),len(Y)))
+    for i,xv in enumerate(X):
+        for j,yv in enumerate(Y):
+            vals = slider_values.copy()
+            vals[x_var] = xv
+            vals[y_var] = yv
+            Z[i,j] = compute_consciousness(**vals)
+
+    fig3d = go.Figure(data=[go.Surface(z=Z,x=X,y=Y,colorscale='Viridis')])
+    fig3d.update_layout(scene=dict(xaxis_title=x_var, yaxis_title=y_var, zaxis_title="C"),template="plotly_dark",height=600)
+    st.plotly_chart(fig3d,use_container_width=True)
+
+    # Scenario History
+    st.subheader("📋 Scenario History / Comparison")
+    st.dataframe(pd.DataFrame(st.session_state.history))
+
 # ------------------------------
 # Possibilities Tab
 # ------------------------------
 with possibilities_tab:
     st.markdown("""
-    <div style='color:#00ffff;'>
-    <h2>🚀 Unlocking Infinite Possibilities</h2>
-    <p>Explore consciousness, cognitive states, memory, attention, and environmental interactions.</p>
-    <h3>🌟 Potential Applications:</h3>
-    <ul><li>Human-AI cognitive modeling</li><li>Mind-state prediction and optimization</li><li>Virtual scenario testing</li><li>Education & neuroscience simulations</li></ul>
-    <h3>🔬 Possible Simulations:</h3>
-    <ul><li>High-attention, high-memory environments</li><li>Randomized cognitive state exploration</li><li>AI-guided scenario creation</li><li>Multi-dimensional surface exploration</li></ul>
-    <h3>💡 Insights:</h3>
-    <ul><li>Influence of each variable on consciousness</li><li>Correlation patterns across simulations</li><li>Creative AI scenario suggestions</li></ul>
+    <div class='hud-box'>
+    <h2 class='neon-header'>🚀 Unlocking Infinite Possibilities</h2>
+    <ul class='possibility'>
+        <li>Human-AI cognitive modeling</li>
+        <li>Mind-state prediction & optimization</li>
+        <li>Virtual scenario testing</li>
+        <li>Education & neuroscience simulations</li>
+        <li>High-attention, high-memory environments</li>
+        <li>Randomized cognitive state exploration</li>
+        <li>AI-guided scenario creation</li>
+        <li>Multi-dimensional surface exploration</li>
+        <li>Influence analysis of each variable on consciousness</li>
+        <li>Creative AI scenario suggestions</li>
+    </ul>
     </div>
     """, unsafe_allow_html=True)
 
@@ -121,46 +194,6 @@ with possibilities_tab:
 # AIBuddy Hub Tab
 # ------------------------------
 with aibuddy_tab:
-    st.subheader("🎛️ Hologram Controls")
-    show_hologram = st.checkbox("Enable Hologram", value=True)
-    enable_tts = st.checkbox("Enable Voice", value=True)
-    holo_gender = st.radio("Hologram Gender", ["Female","Male"])
-    avatar_url = "https://i.imgur.com/FemaleHolo.png" if holo_gender=="Female" else "https://i.imgur.com/MaleHolo.png"
-
-    holo_container = st.empty()
-    if show_hologram:
-        holo_html = f"""
-        <div style='position:fixed; bottom:20px; right:20px; width:300px; height:400px; 
-            background:rgba(0,255,255,0.1); backdrop-filter:blur(10px); border:2px solid cyan; 
-            border-radius:15px; padding:10px; z-index:9999; color:#00ffff; font-family:monospace;'>
-            <h3 style='text-align:center;color:#ff00ff;'>🤖 AIBuddy Hologram</h3>
-            <img src='{avatar_url}' style='width:100%; border-radius:10px; margin-bottom:5px;'>
-            <div id='hologram-text' data-sliders='{json.dumps(st.session_state.sliders).replace("'","&apos;")}' data-C='{C}'></div>
-        </div>
-        <script>
-        function safeSpeak(text){{
-            if(!{str(enable_tts).lower()}) return;
-            let voices = window.speechSynthesis.getVoices();
-            if(!voices || voices.length==0) {{
-                window.speechSynthesis.onvoiceschanged = ()=> safeSpeak(text); return;
-            }}
-            const utter = new SpeechSynthesisUtterance(text);
-            utter.voice = voices.find(v=>v.name.includes("{holo_gender}"))||voices[0];
-            window.speechSynthesis.speak(utter);
-        }}
-        function showText(){{
-            const div = document.getElementById('hologram-text');
-            const sliders = JSON.parse(div.dataset.sliders);
-            const C = div.dataset.C;
-            const maxVar = Object.entries(sliders).reduce((a,b)=>a[1]>b[1]?a:b)[0];
-            div.innerHTML = `Current Consciousness: ${C}. Most influential: ${maxVar}.`;
-            safeSpeak(div.innerHTML);
-        }}
-        showText();
-        </script>
-        """
-        holo_container.markdown(holo_html, unsafe_allow_html=True)
-
     st.subheader("💡 AI Suggestions")
     ai_choices = ai_suggestions(slider_values)
     ai_names = [name for name,_ in ai_choices]
@@ -168,12 +201,13 @@ with aibuddy_tab:
     if st.button("Apply Scenario"):
         selected_vals = dict(dict(ai_choices)[ai_selected])
         st.session_state.sliders.update(selected_vals)
+        st.experimental_rerun()
 
     st.subheader("💬 Ask AIBuddy")
     user_question = st.text_input("Type a question:")
     if st.button("Consult AIBuddy"):
         if user_question.strip():
-            response = f"AIBuddy Response: Adjusting 'A' and 'S' may optimize {target_variable}. Explore creative scenarios!"
-            st.markdown(f"<div style='color:#ff00ff;'>{response}</div>", unsafe_allow_html=True)
+            response = f"AIBuddy Response: Adjust variables such as 'A' and 'S' to optimize {target_variable}. Explore creative scenarios!"
+            st.markdown(f"<div class='hud-box'>{response}</div>", unsafe_allow_html=True)
         else:
             st.warning("Type a question to get a response.")
