@@ -13,13 +13,13 @@ import time
 st.set_page_config(page_title="The Complex Equation", page_icon="🧠", layout="wide")
 
 # ------------------------------
-# Cyberpunk Neo-Japan Styles + Animations
+# Futuristic Styles + Animations
 # ------------------------------
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
 
-body {background-color:#0c0c0c; color:white; font-family:'Share Tech Mono', monospace;}
+body {background-color:#0c0c0c; color:white; font-family:'Orbitron', monospace;}
 
 @keyframes fadeIn {from {opacity:0; transform:translateY(-10px);} to {opacity:1; transform:translateY(0);} }
 @keyframes pulse {0% {box-shadow:0 0 10px cyan;} 50% {box-shadow:0 0 20px magenta;} 100% {box-shadow:0 0 10px cyan;}}
@@ -53,7 +53,7 @@ function scrollToSimulation() {
 <div class="welcome-box">
     <div style="font-size:2.8em; font-weight:bold;">🚀 The Complex Equation</div>
     <div style="margin-top:10px; font-size:1.3em;">
-        A next-generation **Neo-Japan cyberpunk simulation engine** by <b>Sam Andrews Rodriguez II</b>.
+        A **simulation creator, the first of its kind** by <b>Sam Andrews Rodriguez II</b>.
         Explore consciousness, cognitive states, memory, attention, environment, and AI scenarios.
     </div>
     <hr style="border:0.5px solid #00ffff; margin:15px 0;">
@@ -81,14 +81,6 @@ demo_values = {"R":7.0,"alpha":1.2,"theta":1.0,"S":8.0,"Q":7.0,"A":9.0,"E":6.0,"
 def generate_random_scenario():
     return {k: round(random.uniform(0.1,10.0),1) for k in st.session_state.sliders.keys()}
 
-def animate_sliders(target_values, steps=15, delay=0.03):
-    for i in range(1, steps+1):
-        for key in st.session_state.sliders:
-            current = st.session_state.sliders[key]
-            st.session_state.sliders[key] = current + (target_values[key]-current)*(i/steps)
-        time.sleep(delay)
-        st.experimental_rerun()
-
 def compute_consciousness(R, alpha, theta, S, Q, A, E, M, Dn, beta):
     return (R*(alpha**theta)*S*Q*(1.3*A)*E*(1.6*M))/(Dn*(beta**theta))
 
@@ -103,14 +95,14 @@ def ai_suggestions(current_values):
     return suggestions
 
 # ------------------------------
-# Buttons
+# Sidebar Buttons
 # ------------------------------
 if st.sidebar.button("📈 Load Demo Scenario"):
-    animate_sliders(demo_values)
+    st.session_state.sliders.update(demo_values)
     st.markdown('<script>scrollToSimulation()</script>', unsafe_allow_html=True)
 
 if st.sidebar.button("🎲 Generate Random Scenario"):
-    animate_sliders(generate_random_scenario())
+    st.session_state.sliders.update(generate_random_scenario())
     st.markdown('<script>scrollToSimulation()</script>', unsafe_allow_html=True)
 
 # ------------------------------
@@ -120,32 +112,31 @@ target_variable = st.sidebar.selectbox("Select variable to solve for:", variable
 
 # Display sliders
 slider_values = {}
-for var in default_values.keys():
-    slider_values[var] = st.sidebar.slider(f"{var}",0.1,10.0,st.session_state.sliders[var],0.1)
+col1, col2 = st.sidebar.columns(2)
+for idx, var in enumerate(default_values.keys()):
+    col = col1 if idx % 2 == 0 else col2
+    slider_values[var] = col.slider(f"{var}", 0.1, 10.0, st.session_state.sliders[var], 0.1)
 
-# AIBuddy Suggestions
+# AI Suggestions
 st.sidebar.subheader("🤖 AIBuddy Suggestions")
 ai_choices = ai_suggestions(slider_values)
-for name, vals in ai_choices:
-    if st.sidebar.button(f"💡 {name}"):
-        animate_sliders(vals)
-        st.markdown('<script>scrollToSimulation()</script>', unsafe_allow_html=True)
+ai_names = [name for name,_ in ai_choices]
+ai_selected = st.sidebar.selectbox("Choose AI Scenario:", ai_names)
+if st.sidebar.button("Apply AI Scenario"):
+    selected_vals = dict(dict(ai_choices)[ai_selected])
+    st.session_state.sliders.update(selected_vals)
 
 # Compute target variable
-if target_variable == "C":
-    C = compute_consciousness(**slider_values)
-else:
-    C = compute_consciousness(**slider_values)
-
+C = compute_consciousness(**slider_values)
 st.session_state.sliders.update(slider_values)
 st.session_state.history.append({**st.session_state.sliders,"C":C})
 
 # ------------------------------
-# Sensitivity Highlight
+# Sensitivity Highlight (Top 3)
 # ------------------------------
 influences = {k:slider_values[k] for k in ["R","A","S","Q","E","M"]}
-most_influential = max(influences.items(), key=lambda x:x[1])[0]
-st.info(f"Currently, **{most_influential}** has the largest impact on {target_variable}")
+sorted_influences = sorted(influences.items(), key=lambda x:x[1], reverse=True)[:3]
+st.info(f"Top 3 influences on {target_variable}: {', '.join([f'{k} ({v:.1f})' for k,v in sorted_influences])}")
 
 # ------------------------------
 # Simulation Section
@@ -153,9 +144,10 @@ st.info(f"Currently, **{most_influential}** has the largest impact on {target_va
 st.markdown('<div id="simulation-section"></div>', unsafe_allow_html=True)
 st.subheader(f"📊 Result for {target_variable}")
 st.markdown(f"<div class='metric-display' style='font-size:2em;color:#00ffff'>{C:.4f}</div>", unsafe_allow_html=True)
-st.markdown(f"**{target_variable}** is influenced most by **{most_influential}**. Adjust sliders to explore outcomes.")
 
+# ------------------------------
 # 2D Plot
+# ------------------------------
 x = np.linspace(0.1,10,50)
 y = (slider_values["R"]*(slider_values["alpha"]**slider_values["theta"])*x*slider_values["Q"]*(1.3*slider_values["A"])*slider_values["E"]*(1.6*slider_values["M"]))/(slider_values["Dn"]*(slider_values["beta"]**slider_values["theta"]))
 fig = go.Figure()
@@ -163,27 +155,67 @@ fig.add_trace(go.Scatter(x=x, y=y, mode="lines+markers", name=f"{target_variable
 fig.update_layout(title=f"{target_variable} vs Stimulus (S)", xaxis_title="Stimulus (S)", yaxis_title=f"{target_variable}", template="plotly_dark")
 st.plotly_chart(fig,use_container_width=True)
 
-# 3D Surface
+# ------------------------------
+# 3D Surface + Smooth Animation
+# ------------------------------
 st.subheader("🌐 3D Variable Interaction Map")
-var_x, var_y = st.columns(2)
-with var_x: x_var = st.selectbox("X-axis variable:", list(slider_values.keys()), index=list(slider_values.keys()).index("S"))
-with var_y: y_var = st.selectbox("Y-axis variable:", list(slider_values.keys()), index=list(slider_values.keys()).index("A"))
+var_x, var_y, var_z, var_animate = st.columns(4)
+x_var = var_x.selectbox("X-axis variable:", list(slider_values.keys()), index=list(slider_values.keys()).index("S"))
+y_var = var_y.selectbox("Y-axis variable:", list(slider_values.keys()), index=list(slider_values.keys()).index("A"))
+z_var = var_z.selectbox("Z-axis variable:", ["C"] + list(slider_values.keys()), index=0)
+animate_var = var_animate.selectbox("Animate variable:", ["None"] + list(slider_values.keys()), index=0)
 
-X = np.linspace(0.1,10,30)
-Y = np.linspace(0.1,10,30)
-Z = np.zeros((len(X),len(Y)))
-for i,xv in enumerate(X):
-    for j,yv in enumerate(Y):
-        vals = slider_values.copy()
-        vals[x_var] = xv
-        vals[y_var] = yv
-        Z[i,j] = compute_consciousness(**vals)
+@st.cache_data
+def compute_surface(slider_values, x_var, y_var, z_var):
+    X = np.linspace(0.1,10,30)
+    Y = np.linspace(0.1,10,30)
+    Z = np.zeros((len(X),len(Y)))
+    for i,xv in enumerate(X):
+        for j,yv in enumerate(Y):
+            vals = slider_values.copy()
+            vals[x_var] = xv
+            vals[y_var] = yv
+            Z[i,j] = compute_consciousness(**vals) if z_var=="C" else vals[z_var]
+    return X, Y, Z
 
-fig3d = go.Figure(data=[go.Surface(z=Z,x=X,y=Y,colorscale='Viridis')])
-fig3d.update_layout(scene=dict(xaxis_title=x_var, yaxis_title=y_var, zaxis_title="C"),template="plotly_dark",height=600)
-st.plotly_chart(fig3d,use_container_width=True)
+plot_area = st.empty()
+if animate_var != "None":
+    steps = 20
+    for val in np.linspace(0.1, 10.0, steps):
+        slider_values[animate_var] = val
+        X, Y, Z = compute_surface(slider_values, x_var, y_var, z_var)
+        fig3d = go.Figure(data=[go.Surface(z=Z, x=X, y=Y, colorscale='Viridis')])
+        fig3d.update_layout(scene=dict(xaxis_title=x_var, yaxis_title=y_var, zaxis_title=z_var),
+                            template="plotly_dark", height=600,
+                            title=f"{z_var} surface with {animate_var}={val:.2f}")
+        plot_area.plotly_chart(fig3d, use_container_width=True)
+        time.sleep(0.3)
+else:
+    X, Y, Z = compute_surface(slider_values, x_var, y_var, z_var)
+    fig3d = go.Figure(data=[go.Surface(z=Z, x=X, y=Y, colorscale='Viridis')])
+    fig3d.update_layout(scene=dict(xaxis_title=x_var, yaxis_title=y_var, zaxis_title=z_var),
+                        template="plotly_dark", height=600)
+    plot_area.plotly_chart(fig3d, use_container_width=True)
 
-# Scenario History
+# ------------------------------
+# Correlation Heatmap
+# ------------------------------
+st.subheader("🌡️ Variable Correlation with C")
+corr_data = pd.DataFrame(st.session_state.history)
+if len(corr_data) > 1:
+    corr_matrix = corr_data.corr()
+    fig_heat = go.Figure(data=go.Heatmap(
+        z=corr_matrix["C"].drop("C"),
+        x=corr_matrix["C"].drop("C").index,
+        y=["C"]*len(corr_matrix["C"].drop("C")),
+        colorscale="Viridis"
+    ))
+    fig_heat.update_layout(template="plotly_dark", height=300)
+    st.plotly_chart(fig_heat, use_container_width=True)
+
+# ------------------------------
+# Scenario History / Download
+# ------------------------------
 st.subheader("📋 Scenario History / Comparison")
 history_df = pd.DataFrame(st.session_state.history)
 st.dataframe(history_df)
