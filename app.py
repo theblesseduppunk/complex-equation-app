@@ -10,7 +10,7 @@ import time
 # ------------------------------
 # Page Setup
 # ------------------------------
-st.set_page_config(page_title="The Complex Equation", page_icon="🧠", layout="wide")
+st.set_page_config(page_title="MindScape (The Complex Equation Simulator)", page_icon="🧠", layout="wide")
 
 # ------------------------------
 # Futuristic / Blade Runner Styles
@@ -53,9 +53,9 @@ function scrollToSimulation() {
 </script>
 
 <div class="welcome-box">
-    <div style="font-size:2.8em; font-weight:bold;">🚀 The Complex Equation</div>
+    <div style="font-size:2.8em; font-weight:bold;">🚀 MindScape</div>
     <div style="margin-top:10px; font-size:1.3em;">
-        A <b>simulation creator, the first of its kind</b> by <b>Sam Andrews Rodriguez II</b>.<br>
+        The Complex Equation Simulator by <b>Sam Andrews Rodriguez II</b>.<br>
         Explore consciousness, cognitive states, memory, attention, environment, and AI scenarios.
     </div>
     <hr style="border:0.5px solid #00ffff; margin:15px 0;">
@@ -134,12 +134,18 @@ st.session_state.history.append({**st.session_state.sliders,"C":C})
 # Sidebar Hologram Options
 # ------------------------------
 show_hologram = st.sidebar.checkbox("Enable AI Hologram", value=True)
+enable_animations = st.sidebar.checkbox("Enable Hologram Animations", value=True)
 holo_gender = st.sidebar.radio("Hologram Gender:", ["Female", "Male"])
 avatar_url = "https://i.imgur.com/FemaleHolo.png" if holo_gender=="Female" else "https://i.imgur.com/MaleHolo.png"
 
 if show_hologram:
     st.markdown(f"""
     <style>
+    @keyframes floatHolo {{
+        0% {{ transform: translateY(0px); }}
+        50% {{ transform: translateY(-10px); }}
+        100% {{ transform: translateY(0px); }}
+    }}
     .hologram {{
         position: fixed;
         bottom: 20px;
@@ -155,8 +161,8 @@ if show_hologram:
         color: #00ffff;
         z-index: 9999;
         box-shadow: 0 0 25px cyan, 0 0 35px magenta;
-        animation: pulse 3s infinite;
         overflow-y: auto;
+        animation: {"floatHolo 3s ease-in-out infinite" if enable_animations else "none"};
     }}
     .hologram h3 {{
         text-align: center;
@@ -174,25 +180,38 @@ if show_hologram:
     <div class="hologram">
         <h3>🤖 AIBuddy Hologram</h3>
         <img src="{avatar_url}">
-        <div id="hologram-text">
-            Welcome! I am your AI companion. I can explain how each variable affects consciousness,
-            suggest new scenarios, and provide insights as you adjust the sliders.
-        </div>
+        <div id="hologram-text"></div>
     </div>
-    """, unsafe_allow_html=True)
 
-# Function to update hologram dynamically
-def update_hologram(text):
-    st.markdown(f"""
     <script>
-    const holo = document.getElementById('hologram-text');
-    if(holo) {{ holo.innerHTML = `{text}`; }}
+    const messages = [
+        "Welcome! I am your AI companion.",
+        "I explain how each variable affects consciousness.",
+        "I suggest new scenarios and provide insights.",
+        "Adjust sliders and watch how the system responds!"
+    ];
+    let i = 0;
+    const holoText = document.getElementById('hologram-text');
+
+    function typeWriter(text, n, callback) {{
+        if (n < text.length) {{
+            holoText.innerHTML = text.substring(0, n+1) + '|';
+            setTimeout(function() {{ typeWriter(text, n+1, callback); }}, 40);
+        }} else {{
+            holoText.innerHTML = text;
+            setTimeout(callback, 1000);
+        }}
+    }}
+
+    function showMessages() {{
+        typeWriter(messages[i], 0, function() {{
+            i = (i+1) % messages.length;
+            showMessages();
+        }});
+    }}
+    showMessages();
     </script>
     """, unsafe_allow_html=True)
-
-# Update hologram based on slider changes
-for var, val in slider_values.items():
-    update_hologram(f"AIBuddy: Adjusting <b>{var}</b> to {val:.2f} affects consciousness accordingly.")
 
 # ------------------------------
 # Tabs for Simulation & Possibilities
@@ -235,14 +254,14 @@ with main_tab:
     df = pd.DataFrame([data])
     csv_buffer = StringIO()
     df.to_csv(csv_buffer,index=False)
-    st.download_button("Download Result as CSV",csv_buffer.getvalue(),"complex_equation_result.csv","text/csv")
-    st.download_button("Download Result as JSON",json.dumps(data,indent=4),"complex_equation_result.json","application/json")
+    st.download_button("Download Result as CSV",csv_buffer.getvalue(),"mindscape_result.csv","text/csv")
+    st.download_button("Download Result as JSON",json.dumps(data,indent=4),"mindscape_result.json","application/json")
 
 with possibilities_tab:
     st.markdown("""
     <div style='color:#00ffff;'>
     <h2>🚀 Unlocking Infinite Possibilities</h2>
-    <p>This simulation creator is capable of exploring the deepest levels of consciousness, cognitive states, memory, attention, and environmental interactions.</p>
+    <p>This simulator is capable of exploring consciousness, cognitive states, memory, attention, and environmental interactions.</p>
     
     <h3>🌟 Potential Applications:</h3>
     <ul>
