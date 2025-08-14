@@ -198,6 +198,52 @@ else:
     plot_area.plotly_chart(fig3d, use_container_width=True)
 
 # ------------------------------
+# Multi-Scenario Overlay Animation
+# ------------------------------
+st.subheader("🌌 Multi-Scenario Holographic 3D Map")
+available_scenarios = ["Demo", "Random"] + [name for name,_ in ai_choices]
+selected_scenarios = st.multiselect("Select scenarios to overlay/animate:", available_scenarios, default=["Demo","Random"])
+
+scenario_map = {
+    "Demo": demo_values,
+    "Random": generate_random_scenario()
+}
+for name, vals in ai_choices:
+    scenario_map[name] = vals
+
+overlay_plot = st.empty()
+steps = 15
+animate_range = np.linspace(0.1, 10.0, steps)
+colors = ["cyan", "magenta", "lime", "orange", "pink"]
+
+for val in animate_range:
+    fig_overlay = go.Figure()
+    for i, scen_name in enumerate(selected_scenarios):
+        vals = scenario_map[scen_name].copy()
+        vals[x_var] = val
+        X, Y = np.meshgrid(np.linspace(0.1,10,30), np.linspace(0.1,10,30))
+        Z = np.zeros_like(X)
+        for ix in range(len(X)):
+            for iy in range(len(Y)):
+                temp = vals.copy()
+                temp[x_var] = X[ix,iy]
+                temp[y_var] = Y[ix,iy]
+                Z[ix,iy] = compute_consciousness(**temp)
+        fig_overlay.add_trace(go.Surface(
+            x=X, y=Y, z=Z, 
+            colorscale=[[0, colors[i%len(colors)]],[1, colors[i%len(colors)]]],
+            opacity=0.6, showscale=False, name=scen_name
+        ))
+    fig_overlay.update_layout(
+        scene=dict(xaxis_title=x_var, yaxis_title=y_var, zaxis_title="C"),
+        template="plotly_dark",
+        height=600,
+        title="Multi-Scenario Holographic Simulation"
+    )
+    overlay_plot.plotly_chart(fig_overlay, use_container_width=True)
+    time.sleep(0.3)
+
+# ------------------------------
 # Correlation Heatmap
 # ------------------------------
 st.subheader("🌡️ Variable Correlation with C")
