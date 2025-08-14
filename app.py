@@ -75,6 +75,9 @@ if "history" not in st.session_state:
 
 demo_values = {"R":7.0,"alpha":1.2,"theta":1.0,"S":8.0,"Q":7.0,"A":9.0,"E":6.0,"M":8.0,"Dn":2.0,"beta":1.0}
 
+# ------------------------------
+# Functions
+# ------------------------------
 def generate_random_scenario():
     return {k: round(random.uniform(0.1,10.0),1) for k in st.session_state.sliders.keys()}
 
@@ -86,8 +89,13 @@ def animate_sliders(target_values, steps=15, delay=0.03):
         time.sleep(delay)
         st.experimental_rerun()
 
+# Original Complex Equation
 def compute_consciousness(R, alpha, theta, S, Q, A, E, M, Dn, beta):
-    return (R*(alpha**theta)*S*Q*(1.3*A)*E*(1.6*M))/(Dn*(beta**theta))
+    return (R*(alpha**theta)*S*Q*(1.3*A)*E*(1.6*M)) / (Dn*(beta**theta))
+
+# Beginner Equation
+def compute_creativity(R, D3):
+    return R / (D3**3)
 
 def ai_suggestions(current_values):
     suggestions = []
@@ -122,9 +130,9 @@ for name, vals in ai_choices:
         animate_sliders(vals)
 
 # Compute target variable
-C = compute_consciousness(**slider_values)
+C_complex = compute_consciousness(**slider_values)
 st.session_state.sliders.update(slider_values)
-st.session_state.history.append({**st.session_state.sliders,"C":C})
+st.session_state.history.append({**slider_values,"C":C_complex})
 
 # ------------------------------
 # Main Tabs
@@ -138,7 +146,7 @@ with tabs[0]:
     most_influential = max(influences.items(), key=lambda x:x[1])[0]
     st.info(f"Currently, **{most_influential}** has the largest impact on {target_variable}")
     
-    st.markdown(f"<div class='metric-display'>{target_variable} = {C:.4f}</div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='metric-display'>{target_variable} = {C_complex:.4f}</div>", unsafe_allow_html=True)
     
     # 2D Plot
     x = np.linspace(0.1,10,50)
@@ -179,18 +187,18 @@ with tabs[1]:
     C_grid = np.zeros((len(R_range), len(D_range)))
     for i, r in enumerate(R_range):
         for j, d in enumerate(D_range):
-            C_grid[i, j] = r / (d**3)
+            C_grid[i, j] = compute_creativity(r, d)
 
     fig_dynamic = go.Figure(data=[
         go.Surface(z=C_grid, x=R_range, y=D_range, colorscale='Viridis', opacity=0.9, showscale=True,
                    hovertemplate='R: %{x:.2f}<br>D³: %{y:.2f}<br>C: %{z:.2f}<extra></extra>'),
-        go.Scatter3d(x=[R_val], y=[D3_val], z=[R_val / (D3_val**3)],
+        go.Scatter3d(x=[R_val], y=[D3_val], z=[compute_creativity(R_val, D3_val)],
                      mode='markers+text', marker=dict(size=6, color='red'), text=["Current Value"], textposition="top center")
     ])
     fig_dynamic.update_layout(scene=dict(xaxis_title='Reality (R)', yaxis_title='Dimensionality (D³)', zaxis_title='Creativity (C)'),
                               template='plotly_dark', height=600)
     st.plotly_chart(fig_dynamic, use_container_width=True)
-    st.markdown(f"<div class='metric-display'>Creativity (C) = {R_val / (D3_val**3):.4f}</div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='metric-display'>Creativity (C) = {compute_creativity(R_val, D3_val):.4f}</div>", unsafe_allow_html=True)
 
 # -------- Possibilities Tab --------
 with tabs[2]:
@@ -215,7 +223,7 @@ with tabs[3]:
     history_df = pd.DataFrame(st.session_state.history)
     st.dataframe(history_df)
     
-    data = {**st.session_state.sliders,"C":C}
+    data = {**st.session_state.sliders,"C":C_complex}
     df = pd.DataFrame([data])
     csv_buffer = StringIO()
     df.to_csv(csv_buffer,index=False)
