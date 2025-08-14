@@ -21,6 +21,7 @@ st.markdown("""
 body, h1, h2, h3, p, div, span, button, label { 
     font-family:'Roboto Mono', monospace !important; 
     background-color:#0a0a0a;
+    margin:0; padding:0;
 }
 
 /* HUD boxes */
@@ -36,14 +37,8 @@ body, h1, h2, h3, p, div, span, button, label {
 @keyframes pulse {0%{text-shadow:0 0 5px cyan;}50%{text-shadow:0 0 15px magenta;}100%{text-shadow:0 0 5px cyan;}}
 @keyframes glowPulse {0%{box-shadow:0 0 10px cyan;}50%{box-shadow:0 0 20px magenta;}100%{box-shadow:0 0 10px cyan;}}
 
-/* Dynamic Backgrounds */
-body.balanced {background: linear-gradient(to bottom, #ffecd2, #fcb69f); transition: background 2s ease-in-out;}
-body.starry {background: radial-gradient(circle at center, #0a0a0a, #001133 80%); transition: background 2s ease-in-out;}
-body.chaotic {background: linear-gradient(270deg, #ff00ff, #00ffff, #ff9900); background-size: 600% 600%; animation: gradientShift 10s ease infinite;}
-@keyframes gradientShift {0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
-
 /* Particle overlay */
-.particle-overlay {position: fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:1;}
+.particle-overlay {position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0;}
 .particle {position:absolute; width:2px; height:2px; background:#00ffff; border-radius:50%; opacity:0.8; animation: floatStars linear infinite;}
 .neon-streak {position:absolute; width:2px; height:100px; background:linear-gradient(180deg,#ff00ff,#00ffff); opacity:0.6; animation: streakMove linear infinite;}
 @keyframes floatStars {0%{transform: translateY(0) translateX(0);}100%{transform: translateY(-110vh) translateX(50px);}}
@@ -125,18 +120,14 @@ st.session_state.history.append({**st.session_state.sliders,"C":C})
 # Dynamic Background + Particle Overlay
 # ------------------------------
 if C < 4:
-    bg_class = "starry"
     particle_state = "starry"
 elif 4 <= C <= 6:
-    bg_class = "balanced"
     particle_state = "balanced"
 else:
-    bg_class = "chaotic"
     particle_state = "chaotic"
 
 st.markdown(f"""
 <script>
-document.body.className = '{bg_class}';
 createParticles('{particle_state}');
 </script>
 """, unsafe_allow_html=True)
