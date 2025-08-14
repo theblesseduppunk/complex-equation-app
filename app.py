@@ -130,46 +130,33 @@ with aibuddy_tab:
     holo_container = st.empty()
     if show_hologram:
         holo_html = f"""
-        <div id="hologram-container" style="
-            position: fixed; bottom:20px; right:20px; width:320px; height:420px;
-            background: rgba(0,255,255,0.1); backdrop-filter: blur(12px);
-            border:2px solid cyan; border-radius:15px; padding:15px;
-            font-family:'Roboto Mono', monospace; color:#00ffff; z-index:9999;
-            box-shadow:0 0 25px cyan, 0 0 35px magenta; overflow-y:auto;
-        ">
-            <h3 style="text-align:center;color:#ff00ff;">🤖 AIBuddy Hologram</h3>
-            <img src="{avatar_url}" style="width:100%; border-radius:10px; margin-bottom:10px;">
-            <div id="hologram-text" data-sliders='{json.dumps(st.session_state.sliders)}' data-C='{C}'></div>
+        <div style='position:fixed; bottom:20px; right:20px; width:300px; height:400px; 
+            background:rgba(0,255,255,0.1); backdrop-filter:blur(10px); border:2px solid cyan; 
+            border-radius:15px; padding:10px; z-index:9999; color:#00ffff; font-family:monospace;'>
+            <h3 style='text-align:center;color:#ff00ff;'>🤖 AIBuddy Hologram</h3>
+            <img src='{avatar_url}' style='width:100%; border-radius:10px; margin-bottom:5px;'>
+            <div id='hologram-text' data-sliders='{json.dumps(st.session_state.sliders).replace("'","&apos;")}' data-C='{C}'></div>
         </div>
         <script>
-        function speakMessage(text){{
+        function safeSpeak(text){{
             if(!{str(enable_tts).lower()}) return;
-            const utter = new SpeechSynthesisUtterance(text);
-            const voices = window.speechSynthesis.getVoices();
-            if("{holo_gender}"==="Female"){{
-                utter.voice = voices.find(v=>v.name.includes("Female"))||voices[0]; utter.pitch=0.9; utter.rate=1.0;
-            }} else {{
-                utter.voice = voices.find(v=>v.name.includes("Male"))||voices[0]; utter.pitch=1.0; utter.rate=1.0;
+            let voices = window.speechSynthesis.getVoices();
+            if(!voices || voices.length==0) {{
+                window.speechSynthesis.onvoiceschanged = ()=> safeSpeak(text); return;
             }}
+            const utter = new SpeechSynthesisUtterance(text);
+            utter.voice = voices.find(v=>v.name.includes("{holo_gender}"))||voices[0];
             window.speechSynthesis.speak(utter);
         }}
-        function typeWriterWithVoice(text){{
-            let n=0;
-            function step(){{
-                if(n<text.length){{document.getElementById('hologram-text').innerHTML=text.substring(0,n+1)+'|'; n++; setTimeout(step,25);}}
-                else{{document.getElementById('hologram-text').innerHTML=text; speakMessage(text);}}
-            }}
-            step();
+        function showText(){{
+            const div = document.getElementById('hologram-text');
+            const sliders = JSON.parse(div.dataset.sliders);
+            const C = div.dataset.C;
+            const maxVar = Object.entries(sliders).reduce((a,b)=>a[1]>b[1]?a:b)[0];
+            div.innerHTML = `Current Consciousness: ${C}. Most influential: ${maxVar}.`;
+            safeSpeak(div.innerHTML);
         }}
-        function updateHoloCommentary(){{
-            const holoDiv = document.getElementById('hologram-text');
-            const sliders = JSON.parse(holoDiv.dataset.sliders);
-            const C = parseFloat(holoDiv.dataset.C);
-            let maxVar = Object.entries(sliders).reduce((a,b)=>a[1]>b[1]?a:b)[0];
-            let commentary = `Current Consciousness (C): ${C.toFixed(2)}. Most influential: ${maxVar}. Adjust sliders to explore!`;
-            typeWriterWithVoice(commentary);
-        }}
-        window.speechSynthesis.onvoiceschanged=function(){{updateHoloCommentary();}};
+        showText();
         </script>
         """
         holo_container.markdown(holo_html, unsafe_allow_html=True)
