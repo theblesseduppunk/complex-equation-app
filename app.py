@@ -128,7 +128,34 @@ st.session_state.sliders.update(slider_values)
 st.session_state.history.append({**st.session_state.sliders,"C":C})
 
 # ------------------------------
-# Dynamic Background + Particle Overlay
+# Dynamic Gradient Background
+# ------------------------------
+def set_dynamic_background(C_value):
+    if C_value < 4:
+        gradient = "linear-gradient(135deg, #1a1a40, #0c0c20)"
+    elif C_value <= 6:
+        gradient = "linear-gradient(135deg, #0c0c20, #003366, #6600cc)"
+    else:
+        gradient = "linear-gradient(135deg, #ff0066, #ffcc00, #00ffff)"
+    st.markdown(f"""
+    <style>
+    body {{
+        background: {gradient};
+        background-size: 400% 400%;
+        animation: gradientShift 15s ease infinite;
+    }}
+    @keyframes gradientShift {{
+        0%{{background-position:0% 50%;}}
+        50%{{background-position:100% 50%;}}
+        100%{{background-position:0% 50%;}}
+    }}
+    </style>
+    """, unsafe_allow_html=True)
+
+set_dynamic_background(C)
+
+# ------------------------------
+# Particle overlay
 # ------------------------------
 particle_state = "starry" if C < 4 else "balanced" if C<=6 else "chaotic"
 st.markdown(f"<script>createParticles('{particle_state}');</script>", unsafe_allow_html=True)
@@ -178,12 +205,28 @@ with sim_tab:
     st.dataframe(pd.DataFrame(st.session_state.history))
 
 # ------------------------------
-# Expanded Possibilities Tab
+# Possibilities Tab
 # ------------------------------
 with possibilities_tab:
+    # Summary of Potential
     st.markdown("""
     <div class='hud-box'>
-    <h2 class='poss-header'>🚀 Unlocking Infinite Possibilities</h2>
+        <h2 class='poss-header'>💡 Summary of MindScape Potential</h2>
+        <ul class='possibility'>
+            <li><b>Human Cognition Insights:</b> Explore how attention, memory, sensory processing, and environment shape consciousness.</li>
+            <li><b>AI-Human Interaction:</b> AI-assisted scenario guidance, decision modeling, and creativity optimization.</li>
+            <li><b>Virtual & Mixed Reality:</b> Test cognitive and behavioral outcomes in VR and hybrid environments.</li>
+            <li><b>Theoretical & Scientific Exploration:</b> Simulate extreme or untested cognitive conditions safely.</li>
+            <li><b>Real-World Applications:</b> Education, training, productivity, mental health, and human performance modeling.</li>
+            <li><b>Creative Possibilities:</b> Generate inspiration for art, music, narratives, or AI-driven interactive worlds.</li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Detailed Scenario Lists
+    st.markdown("""
+    <div class='hud-box'>
+    <h2 class='poss-header'>🚀 Detailed Scenario Categories</h2>
     
     <h3 style='color:#00ffcc;'>🌐 Real World Scenarios</h3>
     <ul class='possibility'>
