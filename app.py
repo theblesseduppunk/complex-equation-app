@@ -40,7 +40,6 @@ body {background-color:#0a0a0a; color:white; font-family:'Orbitron', monospace;}
 
 .slider-label {color:#00ffff; font-weight:bold;}
 .metric-display {animation: pulse 2s infinite; font-size:1.5em; color:#00ffff;}
-
 .tab-header {font-size:2em; color:#00ffff; font-weight:bold; margin-top:10px;}
 .possibility {margin:10px 0; padding:10px; border-radius:10px; background: rgba(0,0,0,0.5); border:1px solid #00ffff; box-shadow:0 0 15px #ff00ff;}
 </style>
@@ -89,7 +88,7 @@ def animate_sliders(target_values, steps=15, delay=0.03):
         time.sleep(delay)
         st.experimental_rerun()
 
-# Original Complex Equation
+# Complex Equation
 def compute_consciousness(R, alpha, theta, S, Q, A, E, M, Dn, beta):
     return (R*(alpha**theta)*S*Q*(1.3*A)*E*(1.6*M)) / (Dn*(beta**theta))
 
@@ -122,7 +121,7 @@ slider_values = {}
 for var in default_values.keys():
     slider_values[var] = st.sidebar.slider(f"{var}",0.1,10.0,st.session_state.sliders[var],0.1)
 
-# AIBuddy Tab Section
+# AI Buddy Tab Section
 ai_tab = st.sidebar.expander("🤖 AIBuddy Suggestions")
 ai_choices = ai_suggestions(slider_values)
 for name, vals in ai_choices:
@@ -135,7 +134,36 @@ st.session_state.sliders.update(slider_values)
 st.session_state.history.append({**slider_values,"C":C_complex})
 
 # ------------------------------
-# Main Tabs
+# Dynamic Full-Screen Background
+# ------------------------------
+def update_background(consciousness_value, min_val=0, max_val=20):
+    norm = (consciousness_value - min_val) / (max_val - min_val)
+    norm = max(0, min(1, norm))
+    serenity_color = "#0a0f2b"
+    chaos_color = "#ff00ff"
+    r_ser = int(serenity_color[1:3],16)
+    g_ser = int(serenity_color[3:5],16)
+    b_ser = int(serenity_color[5:7],16)
+    r_cha = int(chaos_color[1:3],16)
+    g_cha = int(chaos_color[3:5],16)
+    b_cha = int(chaos_color[5:7],16)
+    r = int(r_ser + (r_cha - r_ser) * norm)
+    g = int(g_ser + (g_cha - g_ser) * norm)
+    b = int(b_ser + (b_cha - b_ser) * norm)
+    bg_color = f"rgb({r},{g},{b})"
+    st.markdown(f"""
+    <style>
+        body {{
+            background: linear-gradient(to bottom, {bg_color}, #000000);
+            transition: background 1s ease;
+        }}
+    </style>
+    """, unsafe_allow_html=True)
+
+update_background(C_complex, min_val=0, max_val=20)
+
+# ------------------------------
+# Tabs
 # ------------------------------
 tabs = st.tabs(["Simulation","Beginner Equation","Possibilities","History","About"])
 
@@ -145,10 +173,8 @@ with tabs[0]:
     influences = {k:slider_values[k] for k in ["R","A","S","Q","E","M"]}
     most_influential = max(influences.items(), key=lambda x:x[1])[0]
     st.info(f"Currently, **{most_influential}** has the largest impact on {target_variable}")
-    
     st.markdown(f"<div class='metric-display'>{target_variable} = {C_complex:.4f}</div>", unsafe_allow_html=True)
     
-    # 2D Plot
     x = np.linspace(0.1,10,50)
     y = (slider_values["R"]*(slider_values["alpha"]**slider_values["theta"])*x*slider_values["Q"]*(1.3*slider_values["A"])*slider_values["E"]*(1.6*slider_values["M"]))/(slider_values["Dn"]*(slider_values["beta"]**slider_values["theta"]))
     fig = go.Figure()
@@ -156,7 +182,6 @@ with tabs[0]:
     fig.update_layout(title=f"{target_variable} vs Stimulus (S)", xaxis_title="Stimulus (S)", yaxis_title=f"{target_variable}", template="plotly_dark")
     st.plotly_chart(fig,use_container_width=True)
 
-    # 3D Surface
     st.subheader("🌐 3D Variable Interaction Map")
     var_x, var_y = st.columns(2)
     with var_x: x_var = st.selectbox("X-axis variable:", list(slider_values.keys()), index=list(slider_values.keys()).index("S"))
@@ -236,23 +261,23 @@ with tabs[4]:
     st.markdown("""
     <div class='possibility'>
     <b>The Complex Equation:</b><br>
-    C = (R * α^θ * S * Q * 1.3A * E * 1.6M) / (Dn * β^θ)<br>
-    - R: Sensory processing / Reality<br>
-    - α, θ: Multipliers affecting dynamics<br>
-    - S: Stimulus<br>
-    - Q: Quality<br>
-    - A: Attention<br>
-    - E: Environment<br>
-    - M: Memory<br>
-    - Dn: Dimensional factor<br>
-    - β: Environmental influence<br><br>
-    
+    C = (R × α^θ × S × Q × (1.3 × A) × E × (1.6 × M)) / (Dₙ × β^θ)<br>
+    - Consciousness (C): The level of consciousness.<br>
+    - Sensory processing (R): The level of sensory processing.<br>
+    - Attention (A): The level of attention.<br>
+    - Memory (M): The level of memory.<br>
+    - Emotional state (E): The emotional state.<br>
+    - Quality of information (Q): The quality of information.<br>
+    - Neural complexity (Dₙ): The level of neural complexity.<br>
+    - α and β: Parameters influencing variable relationships.<br>
+    - θ: Non-linearity parameter.<br><br>
+
     <b>Beginner Equation:</b><br>
     C = R / D³<br>
-    - Helps beginners explore creativity as a function of Reality (R) and Dimensionality (D³)<br><br>
-    
+    - Helps beginners explore creativity via Reality (R) and Dimensionality (D³)<br><br>
+
     MindScape was created by <b>Sam Andrews Rodriguez II, 2025</b>.<br>
-    It allows exploration of human and AI interactions, creativity landscapes, immersive experiences, and cognitive simulations.<br>
+    Explore human-AI interactions, immersive experiences, and cognitive simulations.<br>
     AI Buddy provides guided scenario suggestions for balanced, high-consciousness, or creative states.
     </div>
     """, unsafe_allow_html=True)
