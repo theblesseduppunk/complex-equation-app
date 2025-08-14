@@ -12,7 +12,7 @@ import random
 st.set_page_config(page_title="MindScape (The Complex Equation Simulator)", page_icon="🧠", layout="wide")
 
 # ------------------------------
-# Animated HUD CSS
+# CSS: HUD, Dynamic Background, Particles, Neon Fonts
 # ------------------------------
 st.markdown("""
 <style>
@@ -20,56 +20,54 @@ st.markdown("""
 
 body, h1, h2, h3, p, div, span, button, label { 
     font-family:'Roboto Mono', monospace !important; 
-    color:#00ffff !important; 
     background-color:#0a0a0a;
 }
 
-@keyframes pulse {0% {text-shadow:0 0 5px cyan;} 50% {text-shadow:0 0 15px magenta;} 100% {text-shadow:0 0 5px cyan;}}
-@keyframes flicker {0%,19%,21%,23%,25%,54%,56%,100% {opacity:1;} 20%,22%,24%,55% {opacity:0.85;}}
+/* HUD boxes */
+.hud-box {background: rgba(0,0,0,0.5); border:2px solid #00ffff; border-radius:15px; padding:15px; margin-bottom:20px; box-shadow:0 0 20px #00ffff,0 0 30px #ff00ff;}
+
+/* Neon headers for tabs */
+.sim-header {color:#00ffff; text-shadow:0 0 5px cyan,0 0 10px magenta;}
+.poss-header {color:#ff00ff; text-shadow:0 0 5px magenta,0 0 10px cyan;}
+.aibuddy-header {color:#ffff00; text-shadow:0 0 5px yellow,0 0 10px orange;}
+
+/* Metric display */
+.metric-display {animation: pulse 2s infinite, glowPulse 3s infinite; font-size:2.5em; text-align:center; color:#00ffff;}
+@keyframes pulse {0%{text-shadow:0 0 5px cyan;}50%{text-shadow:0 0 15px magenta;}100%{text-shadow:0 0 5px cyan;}}
 @keyframes glowPulse {0%{box-shadow:0 0 10px cyan;}50%{box-shadow:0 0 20px magenta;}100%{box-shadow:0 0 10px cyan;}}
 
-.hud-box {
-    background: rgba(0,0,0,0.5);
-    border: 2px solid #00ffff;
-    border-radius: 15px;
-    padding: 15px;
-    margin-bottom: 20px;
-    box-shadow: 0 0 20px #00ffff, 0 0 30px #ff00ff;
-    animation: flicker 3s infinite;
-}
+/* Dynamic Backgrounds */
+body.balanced {background: linear-gradient(to bottom, #ffecd2, #fcb69f); transition: background 2s ease-in-out;}
+body.starry {background: radial-gradient(circle at center, #0a0a0a, #001133 80%); transition: background 2s ease-in-out;}
+body.chaotic {background: linear-gradient(270deg, #ff00ff, #00ffff, #ff9900); background-size: 600% 600%; animation: gradientShift 10s ease infinite;}
+@keyframes gradientShift {0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
 
-.neon-header {
-    color:#00ffff; 
-    font-size:2em; 
-    font-weight:bold; 
-    text-shadow:0 0 5px cyan, 0 0 10px magenta;
-    animation: pulse 2s infinite;
-}
-
-.neon-button {
-    background: linear-gradient(90deg, cyan, magenta); 
-    border:none; 
-    padding:15px 30px; 
-    border-radius:25px; 
-    color:black; 
-    font-size:1.3em; 
-    font-weight:bold; 
-    cursor:pointer; 
-    transition:all 0.3s ease;
-}
-.neon-button:hover { transform: scale(1.05); animation: glowPulse 1.5s infinite; }
-
-.slider-label {color:#00ffff; font-weight:bold;}
-.metric-display {
-    animation: pulse 2s infinite, glowPulse 3s infinite; 
-    font-family:'Roboto Mono', monospace; 
-    color:#00ffff; 
-    font-size:2.5em; 
-    text-align:center;
-}
-
-.possibility {margin:10px 0; padding:10px; border-radius:10px; background: rgba(0,0,0,0.3); border:1px solid #00ffff; box-shadow:0 0 15px #ff00ff;}
+/* Particle overlay */
+.particle-overlay {position: fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:1;}
+.particle {position:absolute; width:2px; height:2px; background:#00ffff; border-radius:50%; opacity:0.8; animation: floatStars linear infinite;}
+.neon-streak {position:absolute; width:2px; height:100px; background:linear-gradient(180deg,#ff00ff,#00ffff); opacity:0.6; animation: streakMove linear infinite;}
+@keyframes floatStars {0%{transform: translateY(0) translateX(0);}100%{transform: translateY(-110vh) translateX(50px);}}
+@keyframes streakMove {0%{transform: translateY(100vh) translateX(0);}100%{transform: translateY(-100vh) translateX(50px);}}
 </style>
+
+<div class="particle-overlay" id="particle-container"></div>
+
+<script>
+function createParticles(state) {
+    const container = document.getElementById('particle-container');
+    container.innerHTML = '';
+    let count = 50;
+    if(state === 'chaotic'){ count = 100; }
+    for(let i=0;i<count;i++){
+        const el = document.createElement('div');
+        el.className = (state==='chaotic')?'neon-streak':'particle';
+        el.style.left = Math.random()*100 + 'vw';
+        el.style.animationDuration = (2 + Math.random()*3)+'s';
+        el.style.height = (state==='chaotic')? (50 + Math.random()*100)+'px':'2px';
+        container.appendChild(el);
+    }
+}
+</script>
 """, unsafe_allow_html=True)
 
 # ------------------------------
@@ -77,7 +75,7 @@ body, h1, h2, h3, p, div, span, button, label {
 # ------------------------------
 st.markdown("""
 <div class="hud-box" style="text-align:center;">
-    <div class="neon-header">🚀 MindScape</div>
+    <div class="sim-header" style="font-size:2em;">🚀 MindScape</div>
     <div style="font-size:1.2em; margin-top:10px;">
         The Complex Equation Simulator by <b>Sam Andrews Rodriguez II</b><br>
         Simulation creator, the first of its kind.<br>
@@ -92,7 +90,6 @@ st.markdown("""
 variables = ["R","alpha","theta","S","Q","A","E","M","Dn","beta","C"]
 default_values = {"R":5.0,"alpha":1.0,"theta":1.0,"S":5.0,"Q":5.0,"A":5.0,"E":5.0,"M":5.0,"Dn":5.0,"beta":1.0}
 demo_values = {"R":7.0,"alpha":1.2,"theta":1.0,"S":8.0,"Q":7.0,"A":9.0,"E":6.0,"M":8.0,"Dn":2.0,"beta":1.0}
-
 if "sliders" not in st.session_state: st.session_state.sliders = default_values.copy()
 if "history" not in st.session_state: st.session_state.history = []
 
@@ -125,6 +122,26 @@ st.session_state.sliders.update(slider_values)
 st.session_state.history.append({**st.session_state.sliders,"C":C})
 
 # ------------------------------
+# Dynamic Background + Particle Overlay
+# ------------------------------
+if C < 4:
+    bg_class = "starry"
+    particle_state = "starry"
+elif 4 <= C <= 6:
+    bg_class = "balanced"
+    particle_state = "balanced"
+else:
+    bg_class = "chaotic"
+    particle_state = "chaotic"
+
+st.markdown(f"""
+<script>
+document.body.className = '{bg_class}';
+createParticles('{particle_state}');
+</script>
+""", unsafe_allow_html=True)
+
+# ------------------------------
 # Tabs
 # ------------------------------
 sim_tab, possibilities_tab, aibuddy_tab = st.tabs(["🧠 Simulation", "🌌 Possibilities", "🤖 AIBuddy Hub"])
@@ -134,8 +151,8 @@ sim_tab, possibilities_tab, aibuddy_tab = st.tabs(["🧠 Simulation", "🌌 Poss
 # ------------------------------
 with sim_tab:
     st.markdown('<div id="simulation-section"></div>', unsafe_allow_html=True)
-    st.markdown(f"<div class='hud-box'><div class='neon-header'>📊 Result for {target_variable}</div><div class='metric-display'>{C:.4f}</div></div>", unsafe_allow_html=True)
-    
+    st.markdown(f"<div class='hud-box'><div class='sim-header'>📊 Result for {target_variable}</div><div class='metric-display'>{C:.4f}</div></div>", unsafe_allow_html=True)
+
     # 2D Plot
     x = np.linspace(0.1,10,50)
     y = (slider_values["R"]*(slider_values["alpha"]**slider_values["theta"])*x*slider_values["Q"]*(1.3*slider_values["A"])*slider_values["E"]*(1.6*slider_values["M"]))/(slider_values["Dn"]*(slider_values["beta"]**slider_values["theta"]))
@@ -174,7 +191,7 @@ with sim_tab:
 with possibilities_tab:
     st.markdown("""
     <div class='hud-box'>
-    <h2 class='neon-header'>🚀 Unlocking Infinite Possibilities</h2>
+    <h2 class='poss-header'>🚀 Unlocking Infinite Possibilities</h2>
     <ul class='possibility'>
         <li>Human-AI cognitive modeling</li>
         <li>Mind-state prediction & optimization</li>
