@@ -13,14 +13,14 @@ import time
 st.set_page_config(page_title="The Complex Equation", page_icon="🧠", layout="wide")
 
 # ------------------------------
-# Futuristic Styles + Animations
+# Futuristic / Blade Runner Styles
 # ------------------------------
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap');
 
 body, h1, h2, h3, h4, h5, h6, p, div, span, button, label {
-    font-family:'Orbitron', monospace !important;
+    font-family:'Roboto Mono', monospace !important;
     color:#00ffff !important;
 }
 
@@ -41,8 +41,7 @@ body, h1, h2, h3, h4, h5, h6, p, div, span, button, label {
 .launch-btn:hover { transform: scale(1.05); box-shadow: 0 0 25px cyan, 0 0 25px magenta; }
 
 .slider-label {color:#00ffff; font-weight:bold;}
-.metric-display {animation: pulse 2s infinite; font-family:'Orbitron', monospace;}
-
+.metric-display {animation: pulse 2s infinite; font-family:'Roboto Mono', monospace;}
 .possibility {margin:10px 0; padding:10px; border-radius:10px; background: rgba(0,0,0,0.5); border:1px solid #00ffff; box-shadow:0 0 15px #ff00ff;}
 </style>
 
@@ -108,9 +107,7 @@ if st.sidebar.button("🎲 Generate Random Scenario"):
     st.session_state.sliders.update(generate_random_scenario())
     st.markdown('<script>scrollToSimulation()</script>', unsafe_allow_html=True)
 
-# ------------------------------
 # Variable Mode & Sliders
-# ------------------------------
 target_variable = st.sidebar.selectbox("Select variable to solve for:", variables, index=variables.index("C"))
 
 slider_values = {}
@@ -134,11 +131,68 @@ st.session_state.sliders.update(slider_values)
 st.session_state.history.append({**st.session_state.sliders,"C":C})
 
 # ------------------------------
-# Sensitivity Highlight
+# Sidebar Hologram Options
 # ------------------------------
-influences = {k:slider_values[k] for k in ["R","A","S","Q","E","M"]}
-sorted_influences = sorted(influences.items(), key=lambda x:x[1], reverse=True)[:3]
-st.info(f"Top 3 influences on {target_variable}: {', '.join([f'{k} ({v:.1f})' for k,v in sorted_influences])}")
+show_hologram = st.sidebar.checkbox("Enable AI Hologram", value=True)
+holo_gender = st.sidebar.radio("Hologram Gender:", ["Female", "Male"])
+avatar_url = "https://i.imgur.com/FemaleHolo.png" if holo_gender=="Female" else "https://i.imgur.com/MaleHolo.png"
+
+if show_hologram:
+    st.markdown(f"""
+    <style>
+    .hologram {{
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 320px;
+        height: 420px;
+        background: rgba(0,255,255,0.1);
+        backdrop-filter: blur(12px);
+        border: 2px solid cyan;
+        border-radius: 15px;
+        padding: 15px;
+        font-family:'Roboto Mono', monospace;
+        color: #00ffff;
+        z-index: 9999;
+        box-shadow: 0 0 25px cyan, 0 0 35px magenta;
+        animation: pulse 3s infinite;
+        overflow-y: auto;
+    }}
+    .hologram h3 {{
+        text-align: center;
+        color: #ff00ff;
+        font-size: 1.3em;
+    }}
+    .hologram img {{
+        width: 100%;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        filter: drop-shadow(0 0 8px cyan) drop-shadow(0 0 5px magenta);
+    }}
+    </style>
+
+    <div class="hologram">
+        <h3>🤖 AIBuddy Hologram</h3>
+        <img src="{avatar_url}">
+        <div id="hologram-text">
+            Welcome! I am your AI companion. I can explain how each variable affects consciousness,
+            suggest new scenarios, and provide insights as you adjust the sliders.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+# Function to update hologram dynamically
+def update_hologram(text):
+    st.markdown(f"""
+    <script>
+    const holo = document.getElementById('hologram-text');
+    if(holo) {{ holo.innerHTML = `{text}`; }}
+    </script>
+    """, unsafe_allow_html=True)
+
+# Update hologram based on slider changes
+for var, val in slider_values.items():
+    update_hologram(f"AIBuddy: Adjusting <b>{var}</b> to {val:.2f} affects consciousness accordingly.")
 
 # ------------------------------
 # Tabs for Simulation & Possibilities
@@ -149,7 +203,7 @@ with main_tab:
     st.markdown('<div id="simulation-section"></div>', unsafe_allow_html=True)
     st.subheader(f"📊 Result for {target_variable}")
     st.markdown(f"<div class='metric-display' style='font-size:2em;color:#00ffff'>{C:.4f}</div>", unsafe_allow_html=True)
-    
+
     # 2D Plot
     x = np.linspace(0.1,10,50)
     y = (slider_values["R"]*(slider_values["alpha"]**slider_values["theta"])*x*slider_values["Q"]*(1.3*slider_values["A"])*slider_values["E"]*(1.6*slider_values["M"]))/(slider_values["Dn"]*(slider_values["beta"]**slider_values["theta"]))
@@ -157,102 +211,21 @@ with main_tab:
     fig.add_trace(go.Scatter(x=x, y=y, mode="lines+markers", name=f"{target_variable} vs S", marker=dict(color="#00ffff")))
     fig.update_layout(title=f"{target_variable} vs Stimulus (S)", xaxis_title="Stimulus (S)", yaxis_title=f"{target_variable}", template="plotly_dark")
     st.plotly_chart(fig,use_container_width=True)
-    
-    # 3D Surface & Multi-Scenario Overlay
+
+    # 3D Surface
     st.subheader("🌐 3D Variable Interaction Map")
-    var_x, var_y, var_z, var_animate = st.columns(4)
-    x_var = var_x.selectbox("X-axis variable:", list(slider_values.keys()), index=list(slider_values.keys()).index("S"))
-    y_var = var_y.selectbox("Y-axis variable:", list(slider_values.keys()), index=list(slider_values.keys()).index("A"))
-    z_var = var_z.selectbox("Z-axis variable:", ["C"] + list(slider_values.keys()), index=0)
-    animate_var = var_animate.selectbox("Animate variable:", ["None"] + list(slider_values.keys()), index=0)
-
-    @st.cache_data
-    def compute_surface(slider_values, x_var, y_var, z_var):
-        X = np.linspace(0.1,10,30)
-        Y = np.linspace(0.1,10,30)
-        Z = np.zeros((len(X),len(Y)))
-        for i,xv in enumerate(X):
-            for j,yv in enumerate(Y):
-                vals = slider_values.copy()
-                vals[x_var] = xv
-                vals[y_var] = yv
-                Z[i,j] = compute_consciousness(**vals) if z_var=="C" else vals[z_var]
-        return X, Y, Z
-
-    plot_area = st.empty()
-    if animate_var != "None":
-        steps = 20
-        for val in np.linspace(0.1, 10.0, steps):
-            slider_values[animate_var] = val
-            X, Y, Z = compute_surface(slider_values, x_var, y_var, z_var)
-            fig3d = go.Figure(data=[go.Surface(z=Z, x=X, y=Y, colorscale='Viridis')])
-            fig3d.update_layout(scene=dict(xaxis_title=x_var, yaxis_title=y_var, zaxis_title=z_var),
-                                template="plotly_dark", height=600,
-                                title=f"{z_var} surface with {animate_var}={val:.2f}")
-            plot_area.plotly_chart(fig3d, use_container_width=True)
-            time.sleep(0.3)
-    else:
-        X, Y, Z = compute_surface(slider_values, x_var, y_var, z_var)
-        fig3d = go.Figure(data=[go.Surface(z=Z, x=X, y=Y, colorscale='Viridis')])
-        fig3d.update_layout(scene=dict(xaxis_title=x_var, yaxis_title=y_var, zaxis_title=z_var),
-                            template="plotly_dark", height=600)
-        plot_area.plotly_chart(fig3d, use_container_width=True)
-
-    # Multi-Scenario Overlay
-    st.subheader("🌌 Multi-Scenario Holographic 3D Map")
-    available_scenarios = ["Demo", "Random"] + [name for name,_ in ai_choices]
-    selected_scenarios = st.multiselect("Select scenarios to overlay/animate:", available_scenarios, default=["Demo","Random"])
-    scenario_map = {
-        "Demo": demo_values,
-        "Random": generate_random_scenario()
-    }
-    for name, vals in ai_choices:
-        scenario_map[name] = vals
-
-    overlay_plot = st.empty()
-    steps = 15
-    animate_range = np.linspace(0.1, 10.0, steps)
-    colors = ["cyan", "magenta", "lime", "orange", "pink"]
-    for val in animate_range:
-        fig_overlay = go.Figure()
-        for i, scen_name in enumerate(selected_scenarios):
-            vals = scenario_map[scen_name].copy()
-            vals[x_var] = val
-            X, Y = np.meshgrid(np.linspace(0.1,10,30), np.linspace(0.1,10,30))
-            Z = np.zeros_like(X)
-            for ix in range(len(X)):
-                for iy in range(len(Y)):
-                    temp = vals.copy()
-                    temp[x_var] = X[ix,iy]
-                    temp[y_var] = Y[ix,iy]
-                    Z[ix,iy] = compute_consciousness(**temp)
-            fig_overlay.add_trace(go.Surface(
-                x=X, y=Y, z=Z, 
-                colorscale=[[0, colors[i%len(colors)]],[1, colors[i%len(colors)]]],
-                opacity=0.6, showscale=False, name=scen_name
-            ))
-        fig_overlay.update_layout(
-            scene=dict(xaxis_title=x_var, yaxis_title=y_var, zaxis_title="C"),
-            template="plotly_dark",
-            height=600,
-            title="Multi-Scenario Holographic Simulation"
-        )
-        overlay_plot.plotly_chart(fig_overlay, use_container_width=True)
-        time.sleep(0.3)
-
-    # Correlation Heatmap
-    st.subheader("🌡️ Variable Correlation with C")
-    corr_data = pd.DataFrame(st.session_state.history)
-    if len(corr_data) > 1:
-        corr_matrix = corr_data.corr()
-        fig_heat = go.Figure(data=go.Heatmap(
-            z=corr_matrix["C"].drop("C"),
-            x=corr_matrix["C"].drop("C").index,
-            y=["C"]*len(corr_matrix["C"].drop("C")),
-            colorscale="Viridis"
-        ))
-        fig_heat.update_layout(template="plotly_dark", height=300)
-        st.plotly_chart(fig_heat, use_container_width=True)
+    X = np.linspace(0.1,10,30)
+    Y = np.linspace(0.1,10,30)
+    Z = np.zeros((len(X),len(Y)))
+    for i,xv in enumerate(X):
+        for j,yv in enumerate(Y):
+            vals = slider_values.copy()
+            vals["S"] = xv
+            vals["A"] = yv
+            Z[i,j] = compute_consciousness(**vals)
+    fig3d = go.Figure(data=[go.Surface(z=Z,x=X,y=Y,colorscale='Viridis')])
+    fig3d.update_layout(scene=dict(xaxis_title="S", yaxis_title="A", zaxis_title="C"),template="plotly_dark",height=600)
+    st.plotly_chart(fig3d,use_container_width=True)
 
     # Scenario History / Download
     st.subheader("📋 Scenario History / Comparison")
@@ -294,14 +267,14 @@ with possibilities_tab:
         <li>Creative AI scenario suggestions</li>
     </ul>
     </div>
-    """, unsafe_allow_html=True)
+    """ , unsafe_allow_html=True)
 
     # AIBuddy Panel
-    st.subheader("🤖 AIBuddy")
+    st.subheader("🤖 AIBuddy Interactive Console")
     user_question = st.text_input("Ask AIBuddy for a suggestion or insight:")
     if st.button("💬 Consult AIBuddy"):
         if user_question.strip():
-            response = f"AIBuddy Suggestion: Based on current parameters, adjusting 'A' and 'S' could maximize {target_variable}. Explore creative scenarios for novel insights!"
+            response = f"AIBuddy Suggestion: Adjusting 'A' and 'S' may maximize {target_variable}. Explore creative scenarios for novel insights!"
             st.markdown(f"<div style='color:#ff00ff;'>{response}</div>", unsafe_allow_html=True)
         else:
             st.warning("Type a question for AIBuddy to respond.")
