@@ -225,4 +225,4 @@ with possibilities_tab:
             response = f"AIBuddy Suggestion: Adjusting 'A' and 'S' may maximize {target_variable}. Explore creative scenarios for novel insights!"
             st.markdown(f"<div style='color:#ff00ff;'>{response}</div>", unsafe_allow_html=True)
         else:
-            st.warning("Type a question for AIBuddy
+            st.warning("Type a question for AIBuddy to respond.")
