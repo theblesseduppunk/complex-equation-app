@@ -178,23 +178,45 @@ with sim_tab:
     st.dataframe(pd.DataFrame(st.session_state.history))
 
 # ------------------------------
-# Possibilities Tab
+# Expanded Possibilities Tab
 # ------------------------------
 with possibilities_tab:
     st.markdown("""
     <div class='hud-box'>
     <h2 class='poss-header'>🚀 Unlocking Infinite Possibilities</h2>
+    
+    <h3 style='color:#00ffcc;'>🌐 Real World Scenarios</h3>
     <ul class='possibility'>
-        <li>Human-AI cognitive modeling</li>
-        <li>Mind-state prediction & optimization</li>
-        <li>Virtual scenario testing</li>
-        <li>Education & neuroscience simulations</li>
-        <li>High-attention, high-memory environments</li>
-        <li>Randomized cognitive state exploration</li>
-        <li>AI-guided scenario creation</li>
-        <li>Multi-dimensional surface exploration</li>
-        <li>Influence analysis of each variable on consciousness</li>
-        <li>Creative AI scenario suggestions</li>
+        <li>Human cognitive optimization in workplace settings</li>
+        <li>Stress & attention management for learning</li>
+        <li>Social interaction prediction and outcome analysis</li>
+        <li>Memory enhancement exercises</li>
+    </ul>
+
+    <h3 style='color:#cc00ff;'>🕹 Virtuality Scenarios</h3>
+    <ul class='possibility'>
+        <li>Immersive VR simulations of cognitive states</li>
+        <li>Virtual collaborative problem solving</li>
+        <li>Scenario-based learning in virtual environments</li>
+        <li>Adaptive AI-driven training simulations</li>
+    </ul>
+
+    <h3 style='color:#ffaa00;'>🤖 AI & Hybrid Scenarios</h3>
+    <ul class='possibility'>
+        <li>AI-guided human decision modeling</li>
+        <li>AI-assisted scenario creation for complex environments</li>
+        <li>Joint real-world + AI simulations for behavioral analysis</li>
+        <li>Virtual worlds predicting real-world outcomes</li>
+        <li>AI-driven multi-agent interactions in hybrid spaces</li>
+    </ul>
+
+    <h3 style='color:#00ffff;'>🌌 Mixed Reality / Infinite Possibilities</h3>
+    <ul class='possibility'>
+        <li>Predictive cognition simulations linking VR and real life</li>
+        <li>AI-enhanced social experiment modeling</li>
+        <li>Joint virtuality + AI-guided training</li>
+        <li>Exploration of consciousness under hybrid reality conditions</li>
+        <li>Dynamic simulations of attention, memory, and perception in real & virtual environments</li>
     </ul>
     </div>
     """, unsafe_allow_html=True)
