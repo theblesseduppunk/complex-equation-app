@@ -97,55 +97,71 @@ enable_tts = st.sidebar.checkbox("Enable AIBuddy Voice", value=True)
 holo_gender = st.sidebar.radio("Hologram Gender:", ["Female", "Male"])
 avatar_url = "https://i.imgur.com/FemaleHolo.png" if holo_gender=="Female" else "https://i.imgur.com/MaleHolo.png"
 
+# Persistent hologram container
+holo_container = st.empty()
+
 if show_hologram:
-    st.markdown(f"""
-    <style>
-    @keyframes floatHolo {{0% {{ transform: translateY(0px); }} 50% {{ transform: translateY(-10px); }} 100% {{ transform: translateY(0px); }} }}
-    .hologram {{
+    holo_html = f"""
+    <div id="hologram-container" style="
         position: fixed; bottom:20px; right:20px; width:320px; height:420px;
         background: rgba(0,255,255,0.1); backdrop-filter: blur(12px);
         border:2px solid cyan; border-radius:15px; padding:15px;
         font-family:'Roboto Mono', monospace; color:#00ffff; z-index:9999;
         box-shadow:0 0 25px cyan, 0 0 35px magenta; overflow-y:auto;
-        animation: {"floatHolo 3s ease-in-out infinite" if enable_animations else "none"};
-    }}
-    .hologram h3 {{text-align:center;color:#ff00ff;font-size:1.3em;}}
-    .hologram img {{width:100%; border-radius:10px; margin-bottom:10px; filter:drop-shadow(0 0 8px cyan) drop-shadow(0 0 5px magenta);}}
-    </style>
-    <div class="hologram">
-        <h3>🤖 AIBuddy Hologram</h3>
-        <img src="{avatar_url}">
+        animation: {'floatHolo 3s ease-in-out infinite' if enable_animations else 'none'};
+    ">
+        <h3 style="text-align:center;color:#ff00ff;">🤖 AIBuddy Hologram</h3>
+        <img src="{avatar_url}" style="width:100%; border-radius:10px; margin-bottom:10px; filter:drop-shadow(0 0 8px cyan) drop-shadow(0 0 5px magenta);">
         <div id="hologram-text"></div>
     </div>
+
     <script>
-    const messages = [
-        "Welcome! I am your AI companion.",
-        "I explain how each variable affects consciousness.",
-        "I suggest new scenarios and provide insights.",
-        "Adjust sliders and watch how the system responds!"
-    ];
-    let i = 0;
     const holoText = document.getElementById('hologram-text');
     const ttsEnabled = {str(enable_tts).lower()};
     const selectedGender = "{holo_gender}";
-    function speakMessage(text) {{
+    
+    function speakMessage(text){{
         if (!ttsEnabled) return;
         const utter = new SpeechSynthesisUtterance(text);
         const voices = window.speechSynthesis.getVoices();
-        if(selectedGender==="Female"){{ utter.voice = voices.find(v=>v.name.includes("Google UK English Female")||v.name.includes("female"))||voices[0]; utter.pitch=0.9; utter.rate=1.0; }}
-        else{{ utter.voice = voices.find(v=>v.name.includes("Google US English Male")||v.name.includes("male"))||voices[0]; utter.pitch=1.0; utter.rate=1.0; }}
+        if(selectedGender==="Female"){{
+            utter.voice = voices.find(v=>v.name.includes("Google UK English Female")||v.name.includes("female"))||voices[0];
+            utter.pitch = 0.9; utter.rate = 1.0;
+        }} else {{
+            utter.voice = voices.find(v=>v.name.includes("Google US English Male")||v.name.includes("male"))||voices[0];
+            utter.pitch = 1.0; utter.rate = 1.0;
+        }}
         window.speechSynthesis.speak(utter);
     }}
-    function typeWriterWithVoice(text,n,callback){{
-        if(n<text.length){{ holoText.innerHTML=text.substring(0,n+1)+'|'; setTimeout(()=>typeWriterWithVoice(text,n+1,callback),40); }}
-        else{{ holoText.innerHTML=text; speakMessage(text); setTimeout(callback,1000); }}
+
+    function typeWriterWithVoice(text){{
+        let n=0;
+        function step(){{
+            if(n<text.length){{
+                holoText.innerHTML = text.substring(0,n+1)+'|';
+                n++;
+                setTimeout(step,25);
+            }} else {{
+                holoText.innerHTML = text;
+                speakMessage(text);
+            }}
+        }}
+        step();
     }}
-    function showMessagesWithVoice(){{
-        typeWriterWithVoice(messages[i],0,function(){{ i=(i+1)%messages.length; showMessagesWithVoice(); }});
+
+    function updateHoloCommentary(){{
+        const sliders = {json.dumps(st.session_state.sliders)};
+        const C = {C};
+        let maxVar = Object.entries(sliders).reduce((a,b)=>a[1]>b[1]?a:b)[0];
+        let commentary = `Current Consciousness (C): ${C.toFixed(2)}. Most influential: ${maxVar}.`;
+        commentary += " Adjust sliders to see how different variables interact!";
+        typeWriterWithVoice(commentary);
     }}
-    showMessagesWithVoice();
+
+    updateHoloCommentary();
     </script>
-    """, unsafe_allow_html=True)
+    """
+    holo_container.markdown(holo_html, unsafe_allow_html=True)
 
 # ------------------------------
 # Tabs for Simulation & Possibilities
@@ -209,4 +225,4 @@ with possibilities_tab:
             response = f"AIBuddy Suggestion: Adjusting 'A' and 'S' may maximize {target_variable}. Explore creative scenarios for novel insights!"
             st.markdown(f"<div style='color:#ff00ff;'>{response}</div>", unsafe_allow_html=True)
         else:
-            st.warning("Type a question for AIBuddy to respond.")
+            st.warning("Type a question for AIBuddy
