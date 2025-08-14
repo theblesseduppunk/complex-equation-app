@@ -19,7 +19,10 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
 
-body {background-color:#0c0c0c; color:white; font-family:'Orbitron', monospace;}
+body, h1, h2, h3, h4, h5, h6, p, div, span, button, label {
+    font-family:'Orbitron', monospace !important;
+    color:#00ffff !important;
+}
 
 @keyframes fadeIn {from {opacity:0; transform:translateY(-10px);} to {opacity:1; transform:translateY(0);} }
 @keyframes pulse {0% {box-shadow:0 0 10px cyan;} 50% {box-shadow:0 0 20px magenta;} 100% {box-shadow:0 0 10px cyan;}}
@@ -29,7 +32,7 @@ body {background-color:#0c0c0c; color:white; font-family:'Orbitron', monospace;}
     padding: 30px; border-radius: 15px;
     background: rgba(0,0,0,0.7); backdrop-filter: blur(10px);
     box-shadow: 0 0 30px rgba(0,255,255,0.5);
-    color: #00ffff; text-align:center; margin-bottom:30px;
+    text-align:center; margin-bottom:30px;
 }
 .launch-btn {
     background: linear-gradient(90deg, cyan, magenta); border:none; 
@@ -38,7 +41,7 @@ body {background-color:#0c0c0c; color:white; font-family:'Orbitron', monospace;}
 .launch-btn:hover { transform: scale(1.05); box-shadow: 0 0 25px cyan, 0 0 25px magenta; }
 
 .slider-label {color:#00ffff; font-weight:bold;}
-.metric-display {animation: pulse 2s infinite;}
+.metric-display {animation: pulse 2s infinite; font-family:'Orbitron', monospace;}
 
 .possibility {margin:10px 0; padding:10px; border-radius:10px; background: rgba(0,0,0,0.5); border:1px solid #00ffff; box-shadow:0 0 15px #ff00ff;}
 </style>
@@ -53,7 +56,7 @@ function scrollToSimulation() {
 <div class="welcome-box">
     <div style="font-size:2.8em; font-weight:bold;">🚀 The Complex Equation</div>
     <div style="margin-top:10px; font-size:1.3em;">
-        A **simulation creator, the first of its kind** by <b>Sam Andrews Rodriguez II</b>.
+        A <b>simulation creator, the first of its kind</b> by <b>Sam Andrews Rodriguez II</b>.<br>
         Explore consciousness, cognitive states, memory, attention, environment, and AI scenarios.
     </div>
     <hr style="border:0.5px solid #00ffff; margin:15px 0;">
@@ -106,11 +109,10 @@ if st.sidebar.button("🎲 Generate Random Scenario"):
     st.markdown('<script>scrollToSimulation()</script>', unsafe_allow_html=True)
 
 # ------------------------------
-# Variable Mode
+# Variable Mode & Sliders
 # ------------------------------
 target_variable = st.sidebar.selectbox("Select variable to solve for:", variables, index=variables.index("C"))
 
-# Display sliders
 slider_values = {}
 col1, col2 = st.sidebar.columns(2)
 for idx, var in enumerate(default_values.keys()):
@@ -132,144 +134,174 @@ st.session_state.sliders.update(slider_values)
 st.session_state.history.append({**st.session_state.sliders,"C":C})
 
 # ------------------------------
-# Sensitivity Highlight (Top 3)
+# Sensitivity Highlight
 # ------------------------------
 influences = {k:slider_values[k] for k in ["R","A","S","Q","E","M"]}
 sorted_influences = sorted(influences.items(), key=lambda x:x[1], reverse=True)[:3]
 st.info(f"Top 3 influences on {target_variable}: {', '.join([f'{k} ({v:.1f})' for k,v in sorted_influences])}")
 
 # ------------------------------
-# Simulation Section
+# Tabs for Simulation & Possibilities
 # ------------------------------
-st.markdown('<div id="simulation-section"></div>', unsafe_allow_html=True)
-st.subheader(f"📊 Result for {target_variable}")
-st.markdown(f"<div class='metric-display' style='font-size:2em;color:#00ffff'>{C:.4f}</div>", unsafe_allow_html=True)
+main_tab, possibilities_tab = st.tabs(["🧠 Simulation", "🌌 Possibilities & AIBuddy"])
 
-# ------------------------------
-# 2D Plot
-# ------------------------------
-x = np.linspace(0.1,10,50)
-y = (slider_values["R"]*(slider_values["alpha"]**slider_values["theta"])*x*slider_values["Q"]*(1.3*slider_values["A"])*slider_values["E"]*(1.6*slider_values["M"]))/(slider_values["Dn"]*(slider_values["beta"]**slider_values["theta"]))
-fig = go.Figure()
-fig.add_trace(go.Scatter(x=x, y=y, mode="lines+markers", name=f"{target_variable} vs S", marker=dict(color="#00ffff")))
-fig.update_layout(title=f"{target_variable} vs Stimulus (S)", xaxis_title="Stimulus (S)", yaxis_title=f"{target_variable}", template="plotly_dark")
-st.plotly_chart(fig,use_container_width=True)
+with main_tab:
+    st.markdown('<div id="simulation-section"></div>', unsafe_allow_html=True)
+    st.subheader(f"📊 Result for {target_variable}")
+    st.markdown(f"<div class='metric-display' style='font-size:2em;color:#00ffff'>{C:.4f}</div>", unsafe_allow_html=True)
+    
+    # 2D Plot
+    x = np.linspace(0.1,10,50)
+    y = (slider_values["R"]*(slider_values["alpha"]**slider_values["theta"])*x*slider_values["Q"]*(1.3*slider_values["A"])*slider_values["E"]*(1.6*slider_values["M"]))/(slider_values["Dn"]*(slider_values["beta"]**slider_values["theta"]))
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=x, y=y, mode="lines+markers", name=f"{target_variable} vs S", marker=dict(color="#00ffff")))
+    fig.update_layout(title=f"{target_variable} vs Stimulus (S)", xaxis_title="Stimulus (S)", yaxis_title=f"{target_variable}", template="plotly_dark")
+    st.plotly_chart(fig,use_container_width=True)
+    
+    # 3D Surface & Multi-Scenario Overlay
+    st.subheader("🌐 3D Variable Interaction Map")
+    var_x, var_y, var_z, var_animate = st.columns(4)
+    x_var = var_x.selectbox("X-axis variable:", list(slider_values.keys()), index=list(slider_values.keys()).index("S"))
+    y_var = var_y.selectbox("Y-axis variable:", list(slider_values.keys()), index=list(slider_values.keys()).index("A"))
+    z_var = var_z.selectbox("Z-axis variable:", ["C"] + list(slider_values.keys()), index=0)
+    animate_var = var_animate.selectbox("Animate variable:", ["None"] + list(slider_values.keys()), index=0)
 
-# ------------------------------
-# 3D Surface + Smooth Animation
-# ------------------------------
-st.subheader("🌐 3D Variable Interaction Map")
-var_x, var_y, var_z, var_animate = st.columns(4)
-x_var = var_x.selectbox("X-axis variable:", list(slider_values.keys()), index=list(slider_values.keys()).index("S"))
-y_var = var_y.selectbox("Y-axis variable:", list(slider_values.keys()), index=list(slider_values.keys()).index("A"))
-z_var = var_z.selectbox("Z-axis variable:", ["C"] + list(slider_values.keys()), index=0)
-animate_var = var_animate.selectbox("Animate variable:", ["None"] + list(slider_values.keys()), index=0)
+    @st.cache_data
+    def compute_surface(slider_values, x_var, y_var, z_var):
+        X = np.linspace(0.1,10,30)
+        Y = np.linspace(0.1,10,30)
+        Z = np.zeros((len(X),len(Y)))
+        for i,xv in enumerate(X):
+            for j,yv in enumerate(Y):
+                vals = slider_values.copy()
+                vals[x_var] = xv
+                vals[y_var] = yv
+                Z[i,j] = compute_consciousness(**vals) if z_var=="C" else vals[z_var]
+        return X, Y, Z
 
-@st.cache_data
-def compute_surface(slider_values, x_var, y_var, z_var):
-    X = np.linspace(0.1,10,30)
-    Y = np.linspace(0.1,10,30)
-    Z = np.zeros((len(X),len(Y)))
-    for i,xv in enumerate(X):
-        for j,yv in enumerate(Y):
-            vals = slider_values.copy()
-            vals[x_var] = xv
-            vals[y_var] = yv
-            Z[i,j] = compute_consciousness(**vals) if z_var=="C" else vals[z_var]
-    return X, Y, Z
-
-plot_area = st.empty()
-if animate_var != "None":
-    steps = 20
-    for val in np.linspace(0.1, 10.0, steps):
-        slider_values[animate_var] = val
+    plot_area = st.empty()
+    if animate_var != "None":
+        steps = 20
+        for val in np.linspace(0.1, 10.0, steps):
+            slider_values[animate_var] = val
+            X, Y, Z = compute_surface(slider_values, x_var, y_var, z_var)
+            fig3d = go.Figure(data=[go.Surface(z=Z, x=X, y=Y, colorscale='Viridis')])
+            fig3d.update_layout(scene=dict(xaxis_title=x_var, yaxis_title=y_var, zaxis_title=z_var),
+                                template="plotly_dark", height=600,
+                                title=f"{z_var} surface with {animate_var}={val:.2f}")
+            plot_area.plotly_chart(fig3d, use_container_width=True)
+            time.sleep(0.3)
+    else:
         X, Y, Z = compute_surface(slider_values, x_var, y_var, z_var)
         fig3d = go.Figure(data=[go.Surface(z=Z, x=X, y=Y, colorscale='Viridis')])
         fig3d.update_layout(scene=dict(xaxis_title=x_var, yaxis_title=y_var, zaxis_title=z_var),
-                            template="plotly_dark", height=600,
-                            title=f"{z_var} surface with {animate_var}={val:.2f}")
+                            template="plotly_dark", height=600)
         plot_area.plotly_chart(fig3d, use_container_width=True)
+
+    # Multi-Scenario Overlay
+    st.subheader("🌌 Multi-Scenario Holographic 3D Map")
+    available_scenarios = ["Demo", "Random"] + [name for name,_ in ai_choices]
+    selected_scenarios = st.multiselect("Select scenarios to overlay/animate:", available_scenarios, default=["Demo","Random"])
+    scenario_map = {
+        "Demo": demo_values,
+        "Random": generate_random_scenario()
+    }
+    for name, vals in ai_choices:
+        scenario_map[name] = vals
+
+    overlay_plot = st.empty()
+    steps = 15
+    animate_range = np.linspace(0.1, 10.0, steps)
+    colors = ["cyan", "magenta", "lime", "orange", "pink"]
+    for val in animate_range:
+        fig_overlay = go.Figure()
+        for i, scen_name in enumerate(selected_scenarios):
+            vals = scenario_map[scen_name].copy()
+            vals[x_var] = val
+            X, Y = np.meshgrid(np.linspace(0.1,10,30), np.linspace(0.1,10,30))
+            Z = np.zeros_like(X)
+            for ix in range(len(X)):
+                for iy in range(len(Y)):
+                    temp = vals.copy()
+                    temp[x_var] = X[ix,iy]
+                    temp[y_var] = Y[ix,iy]
+                    Z[ix,iy] = compute_consciousness(**temp)
+            fig_overlay.add_trace(go.Surface(
+                x=X, y=Y, z=Z, 
+                colorscale=[[0, colors[i%len(colors)]],[1, colors[i%len(colors)]]],
+                opacity=0.6, showscale=False, name=scen_name
+            ))
+        fig_overlay.update_layout(
+            scene=dict(xaxis_title=x_var, yaxis_title=y_var, zaxis_title="C"),
+            template="plotly_dark",
+            height=600,
+            title="Multi-Scenario Holographic Simulation"
+        )
+        overlay_plot.plotly_chart(fig_overlay, use_container_width=True)
         time.sleep(0.3)
-else:
-    X, Y, Z = compute_surface(slider_values, x_var, y_var, z_var)
-    fig3d = go.Figure(data=[go.Surface(z=Z, x=X, y=Y, colorscale='Viridis')])
-    fig3d.update_layout(scene=dict(xaxis_title=x_var, yaxis_title=y_var, zaxis_title=z_var),
-                        template="plotly_dark", height=600)
-    plot_area.plotly_chart(fig3d, use_container_width=True)
 
-# ------------------------------
-# Multi-Scenario Overlay Animation
-# ------------------------------
-st.subheader("🌌 Multi-Scenario Holographic 3D Map")
-available_scenarios = ["Demo", "Random"] + [name for name,_ in ai_choices]
-selected_scenarios = st.multiselect("Select scenarios to overlay/animate:", available_scenarios, default=["Demo","Random"])
-
-scenario_map = {
-    "Demo": demo_values,
-    "Random": generate_random_scenario()
-}
-for name, vals in ai_choices:
-    scenario_map[name] = vals
-
-overlay_plot = st.empty()
-steps = 15
-animate_range = np.linspace(0.1, 10.0, steps)
-colors = ["cyan", "magenta", "lime", "orange", "pink"]
-
-for val in animate_range:
-    fig_overlay = go.Figure()
-    for i, scen_name in enumerate(selected_scenarios):
-        vals = scenario_map[scen_name].copy()
-        vals[x_var] = val
-        X, Y = np.meshgrid(np.linspace(0.1,10,30), np.linspace(0.1,10,30))
-        Z = np.zeros_like(X)
-        for ix in range(len(X)):
-            for iy in range(len(Y)):
-                temp = vals.copy()
-                temp[x_var] = X[ix,iy]
-                temp[y_var] = Y[ix,iy]
-                Z[ix,iy] = compute_consciousness(**temp)
-        fig_overlay.add_trace(go.Surface(
-            x=X, y=Y, z=Z, 
-            colorscale=[[0, colors[i%len(colors)]],[1, colors[i%len(colors)]]],
-            opacity=0.6, showscale=False, name=scen_name
+    # Correlation Heatmap
+    st.subheader("🌡️ Variable Correlation with C")
+    corr_data = pd.DataFrame(st.session_state.history)
+    if len(corr_data) > 1:
+        corr_matrix = corr_data.corr()
+        fig_heat = go.Figure(data=go.Heatmap(
+            z=corr_matrix["C"].drop("C"),
+            x=corr_matrix["C"].drop("C").index,
+            y=["C"]*len(corr_matrix["C"].drop("C")),
+            colorscale="Viridis"
         ))
-    fig_overlay.update_layout(
-        scene=dict(xaxis_title=x_var, yaxis_title=y_var, zaxis_title="C"),
-        template="plotly_dark",
-        height=600,
-        title="Multi-Scenario Holographic Simulation"
-    )
-    overlay_plot.plotly_chart(fig_overlay, use_container_width=True)
-    time.sleep(0.3)
+        fig_heat.update_layout(template="plotly_dark", height=300)
+        st.plotly_chart(fig_heat, use_container_width=True)
 
-# ------------------------------
-# Correlation Heatmap
-# ------------------------------
-st.subheader("🌡️ Variable Correlation with C")
-corr_data = pd.DataFrame(st.session_state.history)
-if len(corr_data) > 1:
-    corr_matrix = corr_data.corr()
-    fig_heat = go.Figure(data=go.Heatmap(
-        z=corr_matrix["C"].drop("C"),
-        x=corr_matrix["C"].drop("C").index,
-        y=["C"]*len(corr_matrix["C"].drop("C")),
-        colorscale="Viridis"
-    ))
-    fig_heat.update_layout(template="plotly_dark", height=300)
-    st.plotly_chart(fig_heat, use_container_width=True)
+    # Scenario History / Download
+    st.subheader("📋 Scenario History / Comparison")
+    history_df = pd.DataFrame(st.session_state.history)
+    st.dataframe(history_df)
+    data = {**st.session_state.sliders,"C":C}
+    df = pd.DataFrame([data])
+    csv_buffer = StringIO()
+    df.to_csv(csv_buffer,index=False)
+    st.download_button("Download Result as CSV",csv_buffer.getvalue(),"complex_equation_result.csv","text/csv")
+    st.download_button("Download Result as JSON",json.dumps(data,indent=4),"complex_equation_result.json","application/json")
 
-# ------------------------------
-# Scenario History / Download
-# ------------------------------
-st.subheader("📋 Scenario History / Comparison")
-history_df = pd.DataFrame(st.session_state.history)
-st.dataframe(history_df)
+with possibilities_tab:
+    st.markdown("""
+    <div style='color:#00ffff;'>
+    <h2>🚀 Unlocking Infinite Possibilities</h2>
+    <p>This simulation creator is capable of exploring the deepest levels of consciousness, cognitive states, memory, attention, and environmental interactions.</p>
+    
+    <h3>🌟 Potential Applications:</h3>
+    <ul>
+        <li>Human-AI cognitive modeling</li>
+        <li>Mind-state prediction and optimization</li>
+        <li>Virtual scenario testing for creative and analytical insights</li>
+        <li>Education and neuroscience simulations</li>
+    </ul>
 
-# Download CSV/JSON
-data = {**st.session_state.sliders,"C":C}
-df = pd.DataFrame([data])
-csv_buffer = StringIO()
-df.to_csv(csv_buffer,index=False)
-st.download_button("Download Result as CSV",csv_buffer.getvalue(),"complex_equation_result.csv","text/csv")
-st.download_button("Download Result as JSON",json.dumps(data,indent=4),"complex_equation_result.json","application/json")
+    <h3>🔬 Possible Simulations:</h3>
+    <ul>
+        <li>High-attention, high-memory environments</li>
+        <li>Randomized cognitive state exploration</li>
+        <li>AI-guided scenario creation (AIBuddy)</li>
+        <li>Variable interactions & multi-dimensional surfaces</li>
+    </ul>
+
+    <h3>💡 Discoveries & Insights:</h3>
+    <ul>
+        <li>Influence of each variable on consciousness</li>
+        <li>Correlation patterns across multiple simulations</li>
+        <li>Creative AI scenario suggestions</li>
+    </ul>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # AIBuddy Panel
+    st.subheader("🤖 AIBuddy")
+    user_question = st.text_input("Ask AIBuddy for a suggestion or insight:")
+    if st.button("💬 Consult AIBuddy"):
+        if user_question.strip():
+            response = f"AIBuddy Suggestion: Based on current parameters, adjusting 'A' and 'S' could maximize {target_variable}. Explore creative scenarios for novel insights!"
+            st.markdown(f"<div style='color:#ff00ff;'>{response}</div>", unsafe_allow_html=True)
+        else:
+            st.warning("Type a question for AIBuddy to respond.")
