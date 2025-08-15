@@ -21,3 +21,10 @@ venv/
 
 # Logs
 *.log
+
+# Node (if used)
+node_modules/
+
+# Temporary files
+*.tmp
+*.bak
