@@ -40,6 +40,7 @@ body {background-color:#0a0a0a; color:white; font-family:'Orbitron', monospace;}
 
 .slider-label {color:#00ffff; font-weight:bold;}
 .metric-display {animation: pulse 2s infinite; font-size:1.5em; color:#00ffff;}
+
 .tab-header {font-size:2em; color:#00ffff; font-weight:bold; margin-top:10px;}
 .possibility {margin:10px 0; padding:10px; border-radius:10px; background: rgba(0,0,0,0.5); border:1px solid #00ffff; box-shadow:0 0 15px #ff00ff;}
 </style>
@@ -61,7 +62,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ------------------------------
-# Sidebar
+# Sidebar for Parameters
 # ------------------------------
 st.sidebar.header("Adjust Parameters / Generate Scenarios")
 variables = ["R","alpha","theta","S","Q","A","E","M","Dn","beta","C"]
@@ -74,9 +75,6 @@ if "history" not in st.session_state:
 
 demo_values = {"R":7.0,"alpha":1.2,"theta":1.0,"S":8.0,"Q":7.0,"A":9.0,"E":6.0,"M":8.0,"Dn":2.0,"beta":1.0}
 
-# ------------------------------
-# Functions
-# ------------------------------
 def generate_random_scenario():
     return {k: round(random.uniform(0.1,10.0),1) for k in st.session_state.sliders.keys()}
 
@@ -89,10 +87,7 @@ def animate_sliders(target_values, steps=15, delay=0.03):
         st.experimental_rerun()
 
 def compute_consciousness(R, alpha, theta, S, Q, A, E, M, Dn, beta):
-    return (R*(alpha**theta)*S*Q*(1.3*A)*E*(1.6*M)) / (Dn*(beta**theta))
-
-def compute_creativity(R, D3):
-    return R / (D3**3)
+    return (R*(alpha**theta)*S*Q*(1.3*A)*E*(1.6*M))/(Dn*(beta**theta))
 
 def ai_suggestions(current_values):
     suggestions = []
@@ -114,53 +109,27 @@ if st.sidebar.button("🎲 Generate Random Scenario"):
 
 target_variable = st.sidebar.selectbox("Select variable to solve for:", variables, index=variables.index("C"))
 
+# Display sliders
 slider_values = {}
 for var in default_values.keys():
     slider_values[var] = st.sidebar.slider(f"{var}",0.1,10.0,st.session_state.sliders[var],0.1)
 
+# AIBuddy Tab Section
 ai_tab = st.sidebar.expander("🤖 AIBuddy Suggestions")
 ai_choices = ai_suggestions(slider_values)
 for name, vals in ai_choices:
     if ai_tab.button(f"💡 {name}"):
         animate_sliders(vals)
 
-C_complex = compute_consciousness(**slider_values)
+# Compute target variable
+C = compute_consciousness(**slider_values)
 st.session_state.sliders.update(slider_values)
-st.session_state.history.append({**slider_values,"C":C_complex})
+st.session_state.history.append({**st.session_state.sliders,"C":C})
 
 # ------------------------------
-# Dynamic Full-Screen Background
+# Main Tabs
 # ------------------------------
-def update_background(consciousness_value, min_val=0, max_val=20):
-    norm = (consciousness_value - min_val) / (max_val - min_val)
-    norm = max(0, min(1, norm))
-    serenity_color = "#0a0f2b"
-    chaos_color = "#ff00ff"
-    r_ser = int(serenity_color[1:3],16)
-    g_ser = int(serenity_color[3:5],16)
-    b_ser = int(serenity_color[5:7],16)
-    r_cha = int(chaos_color[1:3],16)
-    g_cha = int(chaos_color[3:5],16)
-    b_cha = int(chaos_color[5:7],16)
-    r = int(r_ser + (r_cha - r_ser) * norm)
-    g = int(g_ser + (g_cha - g_ser) * norm)
-    b = int(b_ser + (b_cha - b_ser) * norm)
-    bg_color = f"rgb({r},{g},{b})"
-    st.markdown(f"""
-    <style>
-        body {{
-            background: linear-gradient(to bottom, {bg_color}, #000000);
-            transition: background 1s ease;
-        }}
-    </style>
-    """, unsafe_allow_html=True)
-
-update_background(C_complex, min_val=0, max_val=20)
-
-# ------------------------------
-# Tabs
-# ------------------------------
-tabs = st.tabs(["Simulation","Beginner Equation","Possibilities","History","About"])
+tabs = st.tabs(["Simulation","Beginner Equation","Possibilities","History"])
 
 # -------- Simulation Tab --------
 with tabs[0]:
@@ -168,8 +137,10 @@ with tabs[0]:
     influences = {k:slider_values[k] for k in ["R","A","S","Q","E","M"]}
     most_influential = max(influences.items(), key=lambda x:x[1])[0]
     st.info(f"Currently, **{most_influential}** has the largest impact on {target_variable}")
-    st.markdown(f"<div class='metric-display'>{target_variable} = {C_complex:.4f}</div>", unsafe_allow_html=True)
-
+    
+    st.markdown(f"<div class='metric-display'>{target_variable} = {C:.4f}</div>", unsafe_allow_html=True)
+    
+    # 2D Plot
     x = np.linspace(0.1,10,50)
     y = (slider_values["R"]*(slider_values["alpha"]**slider_values["theta"])*x*slider_values["Q"]*(1.3*slider_values["A"])*slider_values["E"]*(1.6*slider_values["M"]))/(slider_values["Dn"]*(slider_values["beta"]**slider_values["theta"]))
     fig = go.Figure()
@@ -177,6 +148,7 @@ with tabs[0]:
     fig.update_layout(title=f"{target_variable} vs Stimulus (S)", xaxis_title="Stimulus (S)", yaxis_title=f"{target_variable}", template="plotly_dark")
     st.plotly_chart(fig,use_container_width=True)
 
+    # 3D Surface
     st.subheader("🌐 3D Variable Interaction Map")
     var_x, var_y = st.columns(2)
     with var_x: x_var = st.selectbox("X-axis variable:", list(slider_values.keys()), index=list(slider_values.keys()).index("S"))
@@ -207,18 +179,18 @@ with tabs[1]:
     C_grid = np.zeros((len(R_range), len(D_range)))
     for i, r in enumerate(R_range):
         for j, d in enumerate(D_range):
-            C_grid[i, j] = compute_creativity(r, d)
+            C_grid[i, j] = r / (d**3)
 
     fig_dynamic = go.Figure(data=[
         go.Surface(z=C_grid, x=R_range, y=D_range, colorscale='Viridis', opacity=0.9, showscale=True,
                    hovertemplate='R: %{x:.2f}<br>D³: %{y:.2f}<br>C: %{z:.2f}<extra></extra>'),
-        go.Scatter3d(x=[R_val], y=[D3_val], z=[compute_creativity(R_val, D3_val)],
+        go.Scatter3d(x=[R_val], y=[D3_val], z=[R_val / (D3_val**3)],
                      mode='markers+text', marker=dict(size=6, color='red'), text=["Current Value"], textposition="top center")
     ])
     fig_dynamic.update_layout(scene=dict(xaxis_title='Reality (R)', yaxis_title='Dimensionality (D³)', zaxis_title='Creativity (C)'),
                               template='plotly_dark', height=600)
     st.plotly_chart(fig_dynamic, use_container_width=True)
-    st.markdown(f"<div class='metric-display'>Creativity (C) = {compute_creativity(R_val, D3_val):.4f}</div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='metric-display'>Creativity (C) = {R_val / (D3_val**3):.4f}</div>", unsafe_allow_html=True)
 
 # -------- Possibilities Tab --------
 with tabs[2]:
@@ -243,36 +215,9 @@ with tabs[3]:
     history_df = pd.DataFrame(st.session_state.history)
     st.dataframe(history_df)
     
-    data = {**st.session_state.sliders,"C":C_complex}
+    data = {**st.session_state.sliders,"C":C}
     df = pd.DataFrame([data])
     csv_buffer = StringIO()
     df.to_csv(csv_buffer,index=False)
     st.download_button("Download Result as CSV",csv_buffer.getvalue(),"mindscape_result.csv","text/csv")
     st.download_button("Download Result as JSON",json.dumps(data,indent=4),"mindscape_result.json","application/json")
-
-# -------- About Tab --------
-with tabs[4]:
-    st.markdown("<div class='tab-header'>📖 About MindScape</div>", unsafe_allow_html=True)
-    st.markdown("""
-    <div class='possibility'>
-    <b>The Complex Equation:</b><br>
-    C = (R × α^θ × S × Q × (1.3 × A) × E × (1.6 × M)) / (Dₙ × β^θ)<br>
-    - Consciousness (C): The level of consciousness.<br>
-    - Sensory processing (R): The level of sensory processing.<br>
-    - Attention (A): The level of attention.<br>
-    - Memory (M): The level of memory.<br>
-    - Emotional state (E): The emotional state.<br>
-    - Quality of information (Q): The quality of information.<br>
-    - Neural complexity (Dₙ): The level of neural complexity.<br>
-    - α and β: Parameters influencing variable relationships.<br>
-    - θ: Non-linearity parameter.<br><br>
-
-    <b>Beginner Equation:</b><br>
-    C = R / D³<br>
-    - Helps beginners explore creativity via Reality (R) and Dimensionality (D³)<br><br>
-
-    MindScape was created by <b>Sam Andrews Rodriguez II, 2025</b>.<br>
-    Explore human-AI interactions, immersive experiences, and cognitive simulations.<br>
-    AI Buddy provides guided scenario suggestions for balanced, high-consciousness, or creative states.
-    </div>
-    """, unsafe_allow_html=True)
