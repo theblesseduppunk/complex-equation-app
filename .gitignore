@@ -3,12 +3,10 @@
 Thumbs.db
 *.swp
 
-# Python cache files
+# Python cache & virtual envs
 __pycache__/
 *.pyc
 *.pyo
-
-# Virtual environments
 .venv/
 env/
 venv/
@@ -16,8 +14,15 @@ venv/
 # Jupyter
 .ipynb_checkpoints
 
-# Secrets
+# Streamlit secrets
 .streamlit/secrets.toml
 
 # Logs
 *.log
+
+# Temporary simulation outputs
+*.csv
+*.json
+
+# Testing cache
+.pytest_cache/
