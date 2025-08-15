@@ -10,11 +10,8 @@ import time
 # ------------------------------
 # Page Setup
 # ------------------------------
-st.set_page_config(
-    page_title="MindScape (The Complex Equation Simulator)",
-    page_icon="🧠",
-    layout="wide"
-)
+st.set_page_config(page_title="MindScape (The Complex Equation Simulator)", 
+                   page_icon="🧠", layout="wide")
 
 # ------------------------------
 # Custom CSS & Futuristic Styling
@@ -64,10 +61,9 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ------------------------------
-# Sidebar & Parameters
+# Sidebar for Parameters
 # ------------------------------
 st.sidebar.header("Adjust Parameters / Generate Scenarios")
-
 variables = ["R","alpha","theta","S","Q","A","E","M","Dn","beta","C"]
 default_values = {"R":5.0,"alpha":1.0,"theta":1.0,"S":5.0,"Q":5.0,"A":5.0,"E":5.0,"M":5.0,"Dn":5.0,"beta":1.0}
 
@@ -100,7 +96,6 @@ def compute_consciousness(R, alpha, theta, S, Q, A, E, M, Dn, beta):
 def compute_creativity(R, D3):
     return R / (D3**3)
 
-# AI Buddy Suggestions
 def ai_suggestions(current_values):
     suggestions = []
     balanced = {k:5.0 for k in current_values.keys()}
@@ -112,7 +107,7 @@ def ai_suggestions(current_values):
     return suggestions
 
 # ------------------------------
-# Sidebar Buttons
+# Scenario Buttons
 # ------------------------------
 if st.sidebar.button("📈 Load Demo Scenario"):
     animate_sliders(demo_values)
@@ -121,34 +116,45 @@ if st.sidebar.button("🎲 Generate Random Scenario"):
 
 target_variable = st.sidebar.selectbox("Select variable to solve for:", variables, index=variables.index("C"))
 
+# Display sliders
 slider_values = {}
 for var in default_values.keys():
-    slider_values[var] = st.sidebar.slider(f"{var}", 0.1, 10.0, st.session_state.sliders[var], 0.1)
+    slider_values[var] = st.sidebar.slider(f"{var}",0.1,10.0,st.session_state.sliders[var],0.1)
 
-# AI Buddy Tab
+# AI Buddy Tab Section
 ai_tab = st.sidebar.expander("🤖 AIBuddy Suggestions")
 ai_choices = ai_suggestions(slider_values)
 for name, vals in ai_choices:
     if ai_tab.button(f"💡 {name}"):
         animate_sliders(vals)
 
-# Compute Target Variable
+# Compute target variable
 C_complex = compute_consciousness(**slider_values)
 st.session_state.sliders.update(slider_values)
-st.session_state.history.append({**slider_values, "C":C_complex})
+st.session_state.history.append({**slider_values,"C":C_complex})
 
 # ------------------------------
-# Dynamic Serenity vs Chaos Background
+# Dynamic Full-Screen Background
 # ------------------------------
-def update_background(value, min_val=0, max_val=20):
-    norm = max(0, min(1, (value - min_val)/(max_val-min_val)))
-    serenity = np.array([10, 15, 43])      # Dark blue
-    chaos = np.array([255, 0, 255])        # Magenta
-    rgb = (serenity + (chaos - serenity)*norm).astype(int)
+def update_background(consciousness_value, min_val=0, max_val=20):
+    norm = (consciousness_value - min_val) / (max_val - min_val)
+    norm = max(0, min(1, norm))
+    serenity_color = "#0a0f2b"
+    chaos_color = "#ff00ff"
+    r_ser = int(serenity_color[1:3],16)
+    g_ser = int(serenity_color[3:5],16)
+    b_ser = int(serenity_color[5:7],16)
+    r_cha = int(chaos_color[1:3],16)
+    g_cha = int(chaos_color[3:5],16)
+    b_cha = int(chaos_color[5:7],16)
+    r = int(r_ser + (r_cha - r_ser) * norm)
+    g = int(g_ser + (g_cha - g_ser) * norm)
+    b = int(b_ser + (b_cha - b_ser) * norm)
+    bg_color = f"rgb({r},{g},{b})"
     st.markdown(f"""
     <style>
         body {{
-            background: linear-gradient(to bottom, rgb({rgb[0]},{rgb[1]},{rgb[2]}), #000000);
+            background: linear-gradient(to bottom, {bg_color}, #000000);
             transition: background 1s ease;
         }}
     </style>
@@ -169,33 +175,31 @@ with tabs[0]:
     st.info(f"Currently, **{most_influential}** has the largest impact on {target_variable}")
     st.markdown(f"<div class='metric-display'>{target_variable} = {C_complex:.4f}</div>", unsafe_allow_html=True)
     
-    # 2D Plot
     x = np.linspace(0.1,10,50)
     y = (slider_values["R"]*(slider_values["alpha"]**slider_values["theta"])*x*slider_values["Q"]*(1.3*slider_values["A"])*slider_values["E"]*(1.6*slider_values["M"]))/(slider_values["Dn"]*(slider_values["beta"]**slider_values["theta"]))
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=x, y=y, mode="lines+markers", name=f"{target_variable} vs S", marker=dict(color="#00ffff")))
     fig.update_layout(title=f"{target_variable} vs Stimulus (S)", xaxis_title="Stimulus (S)", yaxis_title=f"{target_variable}", template="plotly_dark")
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig,use_container_width=True)
 
-    # 3D Surface
     st.subheader("🌐 3D Variable Interaction Map")
     var_x, var_y = st.columns(2)
     with var_x: x_var = st.selectbox("X-axis variable:", list(slider_values.keys()), index=list(slider_values.keys()).index("S"))
     with var_y: y_var = st.selectbox("Y-axis variable:", list(slider_values.keys()), index=list(slider_values.keys()).index("A"))
-    
+
     X = np.linspace(0.1,10,30)
     Y = np.linspace(0.1,10,30)
-    Z = np.zeros((len(X), len(Y)))
+    Z = np.zeros((len(X),len(Y)))
     for i,xv in enumerate(X):
         for j,yv in enumerate(Y):
             vals = slider_values.copy()
             vals[x_var] = xv
             vals[y_var] = yv
             Z[i,j] = compute_consciousness(**vals)
-    
-    fig3d = go.Figure(data=[go.Surface(z=Z, x=X, y=Y, colorscale='Viridis')])
-    fig3d.update_layout(scene=dict(xaxis_title=x_var, yaxis_title=y_var, zaxis_title="C"), template="plotly_dark", height=600)
-    st.plotly_chart(fig3d, use_container_width=True)
+
+    fig3d = go.Figure(data=[go.Surface(z=Z,x=X,y=Y,colorscale='Viridis')])
+    fig3d.update_layout(scene=dict(xaxis_title=x_var, yaxis_title=y_var, zaxis_title="C"),template="plotly_dark",height=600)
+    st.plotly_chart(fig3d,use_container_width=True)
 
 # -------- Beginner Equation Tab --------
 with tabs[1]:
@@ -203,23 +207,23 @@ with tabs[1]:
     R_val = st.slider("Reality (R)", 0.1, 10.0, 5.0, 0.1, key="R_dynamic")
     D3_val = st.slider("Dimensionality (D³)", 0.1, 10.0, 2.0, 0.1, key="D3_dynamic")
     
-    R_range = np.linspace(0.1,10,30)
-    D_range = np.linspace(0.1,10,30)
+    R_range = np.linspace(0.1, 10, 30)
+    D_range = np.linspace(0.1, 10, 30)
     C_grid = np.zeros((len(R_range), len(D_range)))
     for i, r in enumerate(R_range):
         for j, d in enumerate(D_range):
-            C_grid[i,j] = compute_creativity(r,d)
+            C_grid[i, j] = compute_creativity(r, d)
 
     fig_dynamic = go.Figure(data=[
         go.Surface(z=C_grid, x=R_range, y=D_range, colorscale='Viridis', opacity=0.9, showscale=True,
                    hovertemplate='R: %{x:.2f}<br>D³: %{y:.2f}<br>C: %{z:.2f}<extra></extra>'),
-        go.Scatter3d(x=[R_val], y=[D3_val], z=[compute_creativity(R_val,D3_val)],
-                     mode='markers+text', marker=dict(size=6,color='red'), text=["Current Value"], textposition="top center")
+        go.Scatter3d(x=[R_val], y=[D3_val], z=[compute_creativity(R_val, D3_val)],
+                     mode='markers+text', marker=dict(size=6, color='red'), text=["Current Value"], textposition="top center")
     ])
     fig_dynamic.update_layout(scene=dict(xaxis_title='Reality (R)', yaxis_title='Dimensionality (D³)', zaxis_title='Creativity (C)'),
                               template='plotly_dark', height=600)
     st.plotly_chart(fig_dynamic, use_container_width=True)
-    st.markdown(f"<div class='metric-display'>Creativity (C) = {compute_creativity(R_val,D3_val):.4f}</div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='metric-display'>Creativity (C) = {compute_creativity(R_val, D3_val):.4f}</div>", unsafe_allow_html=True)
 
 # -------- Possibilities Tab --------
 with tabs[2]:
