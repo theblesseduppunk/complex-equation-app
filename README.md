@@ -1,16 +1,12 @@
-# Complex Equation App
-Author: Sam Andrews Rodriguez II
+# MindScape (The Complex Equation Simulator)
 
-This app allows users to explore consciousness, creativity, and emergent dynamics using custom equations. Features include:
+Created by Sam Andrews Rodriguez II, 2025.
 
-- Animated possibilities panel
-- Parameter sliders for Reality, Attention, Memory, Emotions, etc.
-- Multiple equation modes (Original, Power Law, Inverted-U, Saturation)
-- 3D surface visualization
-- AI Discovery Mode for optimal parameter suggestions
-- Universe Simulation Mode: multi-universe, time-evolving simulations
-- Data Fitting Mode for experimental CSV data
+MindScape simulates consciousness, creativity, dimensionality, and AI-driven scenarios.
+It includes:
 
-## Deployment
-
-The app is ready to deploy on [Streamlit Cloud](https://streamlit.io/cloud) or other hosting platforms.
+- Complex Equation: C = (R × α^θ × S × Q × 1.3A × E × 1.6M) / (Dn × β^θ)
+- Beginner Equation: C = R / D³
+- AI Buddy: Guided scenario suggestions
+- Dynamic background showing serenity vs chaos
+- Tabs: Simulation, Beginner Equation, Possibilities, History, About
