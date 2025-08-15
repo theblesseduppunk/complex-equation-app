@@ -61,7 +61,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ------------------------------
-# Sidebar for Parameters
+# Sidebar
 # ------------------------------
 st.sidebar.header("Adjust Parameters / Generate Scenarios")
 variables = ["R","alpha","theta","S","Q","A","E","M","Dn","beta","C"]
@@ -88,11 +88,9 @@ def animate_sliders(target_values, steps=15, delay=0.03):
         time.sleep(delay)
         st.experimental_rerun()
 
-# Complex Equation
 def compute_consciousness(R, alpha, theta, S, Q, A, E, M, Dn, beta):
     return (R*(alpha**theta)*S*Q*(1.3*A)*E*(1.6*M)) / (Dn*(beta**theta))
 
-# Beginner Equation
 def compute_creativity(R, D3):
     return R / (D3**3)
 
@@ -116,19 +114,16 @@ if st.sidebar.button("🎲 Generate Random Scenario"):
 
 target_variable = st.sidebar.selectbox("Select variable to solve for:", variables, index=variables.index("C"))
 
-# Display sliders
 slider_values = {}
 for var in default_values.keys():
     slider_values[var] = st.sidebar.slider(f"{var}",0.1,10.0,st.session_state.sliders[var],0.1)
 
-# AI Buddy Tab Section
 ai_tab = st.sidebar.expander("🤖 AIBuddy Suggestions")
 ai_choices = ai_suggestions(slider_values)
 for name, vals in ai_choices:
     if ai_tab.button(f"💡 {name}"):
         animate_sliders(vals)
 
-# Compute target variable
 C_complex = compute_consciousness(**slider_values)
 st.session_state.sliders.update(slider_values)
 st.session_state.history.append({**slider_values,"C":C_complex})
@@ -174,7 +169,7 @@ with tabs[0]:
     most_influential = max(influences.items(), key=lambda x:x[1])[0]
     st.info(f"Currently, **{most_influential}** has the largest impact on {target_variable}")
     st.markdown(f"<div class='metric-display'>{target_variable} = {C_complex:.4f}</div>", unsafe_allow_html=True)
-    
+
     x = np.linspace(0.1,10,50)
     y = (slider_values["R"]*(slider_values["alpha"]**slider_values["theta"])*x*slider_values["Q"]*(1.3*slider_values["A"])*slider_values["E"]*(1.6*slider_values["M"]))/(slider_values["Dn"]*(slider_values["beta"]**slider_values["theta"]))
     fig = go.Figure()
